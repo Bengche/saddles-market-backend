@@ -1,8 +1,8 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const pool = require('../config/database');
+const pool = require("../config/database");
 
-router.get('/', async (req, res, next) => {
+router.get("/", async (req, res, next) => {
   try {
     const { page = 1, limit = 9, category } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
@@ -50,15 +50,17 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-router.get('/:slug', async (req, res, next) => {
+router.get("/:slug", async (req, res, next) => {
   try {
     const result = await pool.query(
       `SELECT * FROM blog_posts WHERE slug = $1 AND published = TRUE LIMIT 1`,
-      [req.params.slug]
+      [req.params.slug],
     );
 
     if (!result.rows.length) {
-      return res.status(404).json({ success: false, message: 'Post not found.' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found." });
     }
 
     const post = result.rows[0];
@@ -69,7 +71,7 @@ router.get('/:slug', async (req, res, next) => {
        FROM blog_posts
        WHERE category = $1 AND slug != $2 AND published = TRUE
        ORDER BY published_at DESC LIMIT 3`,
-      [post.category, post.slug]
+      [post.category, post.slug],
     );
 
     res.json({ success: true, data: { post, related: related.rows } });

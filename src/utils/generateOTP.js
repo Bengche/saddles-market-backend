@@ -1,4 +1,4 @@
-const crypto = require('crypto');
+const crypto = require("crypto");
 
 /**
  * Generate a cryptographically secure 6-digit OTP
@@ -6,14 +6,14 @@ const crypto = require('crypto');
 const generateOTP = () => {
   const buffer = crypto.randomBytes(4);
   const num = buffer.readUInt32BE(0) % 1000000;
-  return num.toString().padStart(6, '0');
+  return num.toString().padStart(6, "0");
 };
 
 /**
  * Generate a secure URL-safe token
  */
 const generateToken = (bytes = 32) => {
-  return crypto.randomBytes(bytes).toString('hex');
+  return crypto.randomBytes(bytes).toString("hex");
 };
 
 /**

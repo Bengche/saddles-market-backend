@@ -4,58 +4,64 @@
  * Usage: node scripts/setup-db.js
  */
 
-require('dotenv').config();
-const { Pool } = require('pg');
-const fs = require('fs');
-const path = require('path');
-const bcrypt = require('bcryptjs');
+require("dotenv").config();
+const { Pool } = require("pg");
+const fs = require("fs");
+const path = require("path");
+const bcrypt = require("bcryptjs");
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl:
+    process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: false }
+      : false,
 });
 
 async function setupDatabase() {
   const client = await pool.connect();
-  console.log('\n── Saddles Market Database Setup ──────────────────────\n');
+  console.log("\n── Saddles Market Database Setup ──────────────────────\n");
 
   try {
-    await client.query('BEGIN');
+    await client.query("BEGIN");
 
     // ── Run migration SQL ──────────────────────────────────────────────────────
-    console.log('Running initial schema migration...');
+    console.log("Running initial schema migration...");
     const schemaSql = fs.readFileSync(
-      path.join(__dirname, '../migrations/001_initial_schema.sql'),
-      'utf8'
+      path.join(__dirname, "../migrations/001_initial_schema.sql"),
+      "utf8",
     );
     await client.query(schemaSql);
-    console.log('Schema migration complete.');
+    console.log("Schema migration complete.");
 
     // ── Create admin user ──────────────────────────────────────────────────────
-    console.log('Creating admin user...');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'Boyalinco$10';
+    console.log("Creating admin user...");
+    const adminPassword = process.env.ADMIN_PASSWORD || "Boyalinco$10";
     const adminPasswordHash = await bcrypt.hash(adminPassword, 12);
 
     const existingAdmin = await client.query(
-      "SELECT id FROM users WHERE email = 'support@saddlesmarket.com'"
+      "SELECT id FROM users WHERE email = 'support@saddlesmarket.com'",
     );
 
     if (existingAdmin.rows.length === 0) {
       await client.query(
         `INSERT INTO users (first_name, last_name, email, password_hash, role, is_email_verified)
          VALUES ($1, $2, $3, $4, 'admin', TRUE)`,
-        ['Saddles', 'Market', 'support@saddlesmarket.com', adminPasswordHash]
+        ["Saddles", "Market", "support@saddlesmarket.com", adminPasswordHash],
       );
-      console.log('Admin user created: support@saddlesmarket.com');
+      console.log("Admin user created: support@saddlesmarket.com");
     } else {
-      console.log('Admin user already exists, skipping.');
+      console.log("Admin user already exists, skipping.");
     }
 
     // ── Seed blog posts ────────────────────────────────────────────────────────
-    console.log('Seeding blog posts...');
+    console.log("Seeding blog posts...");
     const blogPosts = getBlogPosts();
     for (const post of blogPosts) {
-      const exists = await client.query('SELECT id FROM blog_posts WHERE slug = $1', [post.slug]);
+      const exists = await client.query(
+        "SELECT id FROM blog_posts WHERE slug = $1",
+        [post.slug],
+      );
       if (exists.rows.length === 0) {
         await client.query(
           `INSERT INTO blog_posts
@@ -72,23 +78,23 @@ async function setupDatabase() {
             post.meta_title,
             post.meta_description,
             post.reading_time,
-          ]
+          ],
         );
       }
     }
     console.log(`Seeded ${blogPosts.length} blog posts.`);
 
-    await client.query('COMMIT');
-    console.log('\nDatabase setup complete!\n');
-    console.log('Summary:');
-    console.log('  - Schema created with all tables, indexes, and triggers');
-    console.log('  - 8 product categories seeded');
-    console.log('  - Admin user created (support@saddlesmarket.com)');
+    await client.query("COMMIT");
+    console.log("\nDatabase setup complete!\n");
+    console.log("Summary:");
+    console.log("  - Schema created with all tables, indexes, and triggers");
+    console.log("  - 8 product categories seeded");
+    console.log("  - Admin user created (support@saddlesmarket.com)");
     console.log(`  - ${blogPosts.length} blog posts seeded`);
-    console.log('\n────────────────────────────────────────────────────────\n');
+    console.log("\n────────────────────────────────────────────────────────\n");
   } catch (err) {
-    await client.query('ROLLBACK');
-    console.error('Setup failed:', err.message);
+    await client.query("ROLLBACK");
+    console.error("Setup failed:", err.message);
     console.error(err);
     process.exit(1);
   } finally {
@@ -100,14 +106,17 @@ async function setupDatabase() {
 function getBlogPosts() {
   return [
     {
-      title: 'The Complete Guide to Choosing the Right Horse Saddle',
-      slug: 'complete-guide-choosing-right-horse-saddle',
-      excerpt: 'Choosing the right horse saddle is one of the most critical decisions any equestrian makes. This comprehensive guide walks you through every consideration — from discipline and fit to leather quality and budget.',
-      author_name: 'Saddles Market Team',
-      category: 'Buying Guides',
-      tags: ['buying guide', 'saddle fit', 'horse saddles', 'equestrian'],
-      meta_title: 'Complete Guide to Choosing the Right Horse Saddle | Saddles Market',
-      meta_description: 'Learn how to choose the perfect horse saddle. Our expert guide covers discipline, fit, leather quality, seat size, gullet width, and more to help you find the right saddle.',
+      title: "The Complete Guide to Choosing the Right Horse Saddle",
+      slug: "complete-guide-choosing-right-horse-saddle",
+      excerpt:
+        "Choosing the right horse saddle is one of the most critical decisions any equestrian makes. This comprehensive guide walks you through every consideration — from discipline and fit to leather quality and budget.",
+      author_name: "Saddles Market Team",
+      category: "Buying Guides",
+      tags: ["buying guide", "saddle fit", "horse saddles", "equestrian"],
+      meta_title:
+        "Complete Guide to Choosing the Right Horse Saddle | Saddles Market",
+      meta_description:
+        "Learn how to choose the perfect horse saddle. Our expert guide covers discipline, fit, leather quality, seat size, gullet width, and more to help you find the right saddle.",
       reading_time: 12,
       content: `<h2>Why Choosing the Right Saddle Matters</h2>
 <p>The saddle is the primary interface between rider and horse. A well-fitted saddle promotes correct biomechanics, prevents pain, and enhances communication. A poorly fitted saddle can cause back problems, behavioral issues, and long-term injury for both horse and rider.</p>
@@ -196,17 +205,25 @@ function getBlogPosts() {
 <h2>The Saddles Market Guarantee</h2>
 <p>Shopping for a saddle online can feel daunting. That is why every saddle we sell comes with our 30-day free trial. If your saddle does not fit perfectly — your horse, your body, or your riding style — contact us within 30 days for a full refund or exchange.</p>
 
-<p>Have questions? Our team of expert equestrians is available by <a href="/contact">phone, email, or WhatsApp</a> to guide you through your decision.</p>`
+<p>Have questions? Our team of expert equestrians is available by <a href="/contact">phone, email, or WhatsApp</a> to guide you through your decision.</p>`,
     },
     {
-      title: 'Western vs. English Saddles: Which is Right for You?',
-      slug: 'western-vs-english-saddles-which-is-right-for-you',
-      excerpt: 'The age-old debate among equestrians: Western or English? Both traditions offer beautiful saddle-making heritage, distinct riding styles, and unique advantages. This guide helps you decide.',
-      author_name: 'Saddles Market Team',
-      category: 'Buying Guides',
-      tags: ['western saddles', 'english saddles', 'saddle comparison', 'riding style'],
-      meta_title: 'Western vs. English Saddles: Which Should You Buy? | Saddles Market',
-      meta_description: 'Not sure whether to buy a Western or English saddle? Compare the two traditions, their disciplines, fit, comfort, and more to find the right horse saddle for you.',
+      title: "Western vs. English Saddles: Which is Right for You?",
+      slug: "western-vs-english-saddles-which-is-right-for-you",
+      excerpt:
+        "The age-old debate among equestrians: Western or English? Both traditions offer beautiful saddle-making heritage, distinct riding styles, and unique advantages. This guide helps you decide.",
+      author_name: "Saddles Market Team",
+      category: "Buying Guides",
+      tags: [
+        "western saddles",
+        "english saddles",
+        "saddle comparison",
+        "riding style",
+      ],
+      meta_title:
+        "Western vs. English Saddles: Which Should You Buy? | Saddles Market",
+      meta_description:
+        "Not sure whether to buy a Western or English saddle? Compare the two traditions, their disciplines, fit, comfort, and more to find the right horse saddle for you.",
       reading_time: 10,
       content: `<h2>A Tale of Two Traditions</h2>
 <p>Western and English saddle traditions developed on different continents for different purposes, yet both have produced some of the world's most refined equestrian equipment. Understanding the core differences helps you choose the right tool for your riding goals.</p>
@@ -280,17 +297,24 @@ function getBlogPosts() {
 <li>What riding culture exists at my barn?</li>
 </ol>
 
-<p>Still undecided? Our team at <a href="/contact">Saddles Market</a> is here to help. With our 30-day trial policy, you can order with confidence and see how your chosen saddle truly feels on your rides.</p>`
+<p>Still undecided? Our team at <a href="/contact">Saddles Market</a> is here to help. With our 30-day trial policy, you can order with confidence and see how your chosen saddle truly feels on your rides.</p>`,
     },
     {
-      title: 'How to Properly Fit a Saddle to Your Horse',
-      slug: 'how-to-properly-fit-saddle-horse',
-      excerpt: 'Saddle fit is not optional — it directly impacts your horse\'s health, performance, and willingness to work. Learn the exact steps professional saddle fitters use to assess and achieve the perfect fit.',
-      author_name: 'Saddles Market Team',
-      category: 'Horse Care & Fitting',
-      tags: ['saddle fit', 'horse health', 'saddle fitting guide', 'horse care'],
-      meta_title: 'How to Properly Fit a Saddle to Your Horse | Saddles Market',
-      meta_description: 'A complete guide to fitting a horse saddle correctly. Learn gullet width, tree angle, panel contact, balance, and clearance checks used by professional saddle fitters.',
+      title: "How to Properly Fit a Saddle to Your Horse",
+      slug: "how-to-properly-fit-saddle-horse",
+      excerpt:
+        "Saddle fit is not optional — it directly impacts your horse's health, performance, and willingness to work. Learn the exact steps professional saddle fitters use to assess and achieve the perfect fit.",
+      author_name: "Saddles Market Team",
+      category: "Horse Care & Fitting",
+      tags: [
+        "saddle fit",
+        "horse health",
+        "saddle fitting guide",
+        "horse care",
+      ],
+      meta_title: "How to Properly Fit a Saddle to Your Horse | Saddles Market",
+      meta_description:
+        "A complete guide to fitting a horse saddle correctly. Learn gullet width, tree angle, panel contact, balance, and clearance checks used by professional saddle fitters.",
       reading_time: 9,
       content: `<h2>Why Saddle Fit is Non-Negotiable</h2>
 <p>A poorly fitted saddle is one of the leading causes of back pain, behavioral problems, resistance, and poor performance in horses. Unlike a rider who can verbalize discomfort, horses communicate pain through behavioral changes — bucking, refusing jumps, pinning ears, or general reluctance to work. When a horse you know to be cooperative suddenly develops an attitude problem, the saddle is often the first thing to evaluate.</p>
@@ -356,17 +380,25 @@ function getBlogPosts() {
 <li>You're preparing for a high-level competition season</li>
 </ul>
 
-<p>At <a href="/">Saddles Market</a>, we provide a <strong>30-day free trial</strong> on every saddle precisely because we understand how critical fit is. If a saddle does not fit your horse correctly when it arrives, contact our team immediately. We will work with you on an exchange or full refund — no questions asked.</p>`
+<p>At <a href="/">Saddles Market</a>, we provide a <strong>30-day free trial</strong> on every saddle precisely because we understand how critical fit is. If a saddle does not fit your horse correctly when it arrives, contact our team immediately. We will work with you on an exchange or full refund — no questions asked.</p>`,
     },
     {
-      title: 'The Art of Saddle Leather: Quality, Care and Longevity',
-      slug: 'art-of-saddle-leather-quality-care-longevity',
-      excerpt: 'Premium leather is the soul of a great saddle. Understanding the different types of leather, their qualities, and how to care for them properly can mean the difference between a saddle that lasts five years and one that lasts fifty.',
-      author_name: 'Saddles Market Team',
-      category: 'Saddle Care',
-      tags: ['leather care', 'saddle maintenance', 'leather quality', 'saddle cleaning'],
-      meta_title: 'Saddle Leather Quality, Care & Longevity Guide | Saddles Market',
-      meta_description: 'Learn about different types of saddle leather, how to assess quality, and exact step-by-step care routines that keep your horse saddle supple, beautiful, and lasting for decades.',
+      title: "The Art of Saddle Leather: Quality, Care and Longevity",
+      slug: "art-of-saddle-leather-quality-care-longevity",
+      excerpt:
+        "Premium leather is the soul of a great saddle. Understanding the different types of leather, their qualities, and how to care for them properly can mean the difference between a saddle that lasts five years and one that lasts fifty.",
+      author_name: "Saddles Market Team",
+      category: "Saddle Care",
+      tags: [
+        "leather care",
+        "saddle maintenance",
+        "leather quality",
+        "saddle cleaning",
+      ],
+      meta_title:
+        "Saddle Leather Quality, Care & Longevity Guide | Saddles Market",
+      meta_description:
+        "Learn about different types of saddle leather, how to assess quality, and exact step-by-step care routines that keep your horse saddle supple, beautiful, and lasting for decades.",
       reading_time: 11,
       content: `<h2>Not All Leather is Created Equal</h2>
 <p>The leather used in a saddle determines not only its appearance and feel but its durability, suppleness, and how it ages over decades of use. Understanding the difference between leather types allows you to make an informed investment and care for it properly.</p>
@@ -448,17 +480,25 @@ function getBlogPosts() {
 <li>Clean and condition after each early ride</li>
 </ul>
 
-<p>All <a href="/products">saddles at Saddles Market</a> are pre-conditioned before shipping. They arrive ready to use, and our <a href="/returns-refunds">30-day trial</a> gives you ample time to assess fit and feel during the break-in period.</p>`
+<p>All <a href="/products">saddles at Saddles Market</a> are pre-conditioned before shipping. They arrive ready to use, and our <a href="/returns-refunds">30-day trial</a> gives you ample time to assess fit and feel during the break-in period.</p>`,
     },
     {
-      title: 'Understanding Saddle Gullet Width and Why It Matters',
-      slug: 'understanding-saddle-gullet-width',
-      excerpt: 'The gullet width is arguably the single most important dimension in saddle fitting. Get it wrong and no amount of padding will fix the problem. This guide explains everything you need to know.',
-      author_name: 'Saddles Market Team',
-      category: 'Horse Care & Fitting',
-      tags: ['gullet width', 'saddle fitting', 'horse saddle fit', 'tree width'],
-      meta_title: 'Saddle Gullet Width Guide: What It Means and How to Measure | Saddles Market',
-      meta_description: 'Learn what saddle gullet width means, how to measure your horse for the correct gullet, and why getting this dimension right is critical to your horse\'s comfort and performance.',
+      title: "Understanding Saddle Gullet Width and Why It Matters",
+      slug: "understanding-saddle-gullet-width",
+      excerpt:
+        "The gullet width is arguably the single most important dimension in saddle fitting. Get it wrong and no amount of padding will fix the problem. This guide explains everything you need to know.",
+      author_name: "Saddles Market Team",
+      category: "Horse Care & Fitting",
+      tags: [
+        "gullet width",
+        "saddle fitting",
+        "horse saddle fit",
+        "tree width",
+      ],
+      meta_title:
+        "Saddle Gullet Width Guide: What It Means and How to Measure | Saddles Market",
+      meta_description:
+        "Learn what saddle gullet width means, how to measure your horse for the correct gullet, and why getting this dimension right is critical to your horse's comfort and performance.",
       reading_time: 8,
       content: `<h2>What is the Gullet?</h2>
 <p>The gullet is the channel that runs the full length of the underside of the saddle, sitting directly over the horse's spine. It serves a critical function: creating complete clearance between the saddle and the horse's vertebrae, ensuring no pressure is ever applied directly to the spine itself.</p>
@@ -541,17 +581,25 @@ function getBlogPosts() {
 <li>Re-selling the saddle to a wider market</li>
 </ul>
 
-<p>Browse our selection of <a href="/products">saddles with changeable gullet systems</a> at Saddles Market. All purchases come with our <a href="/returns-refunds">30-day free trial</a>, giving you the opportunity to verify fit in real riding conditions.</p>`
+<p>Browse our selection of <a href="/products">saddles with changeable gullet systems</a> at Saddles Market. All purchases come with our <a href="/returns-refunds">30-day free trial</a>, giving you the opportunity to verify fit in real riding conditions.</p>`,
     },
     {
-      title: 'Dressage Saddles: A Complete Buyer\'s Guide',
-      slug: 'dressage-saddles-complete-buyers-guide',
-      excerpt: 'Dressage demands precision, balance, and harmony between horse and rider. The right dressage saddle is the foundation of this partnership. Discover everything you need to know about selecting a dressage saddle.',
-      author_name: 'Saddles Market Team',
-      category: 'Discipline Guides',
-      tags: ['dressage saddles', 'dressage equipment', 'dressage rider', 'english saddles'],
-      meta_title: 'Dressage Saddles: The Complete Buyer\'s Guide | Saddles Market',
-      meta_description: 'Everything you need to know about buying a dressage saddle. Head, flap length, seat size, panel options, brand comparisons and fitting advice for dressage riders.',
+      title: "Dressage Saddles: A Complete Buyer's Guide",
+      slug: "dressage-saddles-complete-buyers-guide",
+      excerpt:
+        "Dressage demands precision, balance, and harmony between horse and rider. The right dressage saddle is the foundation of this partnership. Discover everything you need to know about selecting a dressage saddle.",
+      author_name: "Saddles Market Team",
+      category: "Discipline Guides",
+      tags: [
+        "dressage saddles",
+        "dressage equipment",
+        "dressage rider",
+        "english saddles",
+      ],
+      meta_title:
+        "Dressage Saddles: The Complete Buyer's Guide | Saddles Market",
+      meta_description:
+        "Everything you need to know about buying a dressage saddle. Head, flap length, seat size, panel options, brand comparisons and fitting advice for dressage riders.",
       reading_time: 10,
       content: `<h2>Dressage: The Art of Riding</h2>
 <p>Dressage — derived from the French word for "training" — is the highest expression of classical horsemanship. It requires the rider to develop absolute balance, independent aids, and a deep, secure seat in order to communicate invisibly with the horse. The <a href="/products?discipline=dressage">dressage saddle</a> is designed specifically to support this ideal position.</p>
@@ -617,17 +665,25 @@ function getBlogPosts() {
 
 <p>At <a href="/">Saddles Market</a>, every dressage saddle comes with our <a href="/returns-refunds">30-day free trial</a>. Take it to your trainer's arena. Ride in it through multiple schooling sessions. Assess how it affects your position, your horse's movement, and your communication. Only then decide if it's right for you.</p>
 
-<p>Questions about our dressage saddle selection? <a href="/contact">Contact our team</a> — we love talking dressage.</p>`
+<p>Questions about our dressage saddle selection? <a href="/contact">Contact our team</a> — we love talking dressage.</p>`,
     },
     {
-      title: 'Show Jumping Saddles: What Every Jumper Needs to Know',
-      slug: 'show-jumping-saddles-what-every-jumper-needs-to-know',
-      excerpt: 'The jumping saddle must allow the rider to move fluidly with the horse\'s powerful jump while maintaining security and balance. Learn exactly what to look for in a high-performance jumping saddle.',
-      author_name: 'Saddles Market Team',
-      category: 'Discipline Guides',
-      tags: ['jumping saddles', 'show jumping', 'equestrian sport', 'english saddles'],
-      meta_title: 'Show Jumping Saddles: Complete Buyer\'s Guide | Saddles Market',
-      meta_description: 'Find the perfect show jumping saddle. Learn about forward cut flaps, knee blocks, seat depth, panel fit, and the top brands trusted by international show jumpers.',
+      title: "Show Jumping Saddles: What Every Jumper Needs to Know",
+      slug: "show-jumping-saddles-what-every-jumper-needs-to-know",
+      excerpt:
+        "The jumping saddle must allow the rider to move fluidly with the horse's powerful jump while maintaining security and balance. Learn exactly what to look for in a high-performance jumping saddle.",
+      author_name: "Saddles Market Team",
+      category: "Discipline Guides",
+      tags: [
+        "jumping saddles",
+        "show jumping",
+        "equestrian sport",
+        "english saddles",
+      ],
+      meta_title:
+        "Show Jumping Saddles: Complete Buyer's Guide | Saddles Market",
+      meta_description:
+        "Find the perfect show jumping saddle. Learn about forward cut flaps, knee blocks, seat depth, panel fit, and the top brands trusted by international show jumpers.",
       reading_time: 8,
       content: `<h2>The Jump Saddle's Purpose</h2>
 <p>Jumping imposes unique demands on both horse and rider. In the air over a fence, the rider must adopt a dramatically forward position — upper body folded forward, weight down into the heels, hands following the horse's mouth — while maintaining balance and security. The <a href="/products?discipline=jumping">jumping saddle</a> is precisely engineered to make this position natural and supported.</p>
@@ -663,17 +719,25 @@ function getBlogPosts() {
 <h2>Jumping Saddle Care Notes</h2>
 <p>Jumping saddles are subjected to greater physical stress than flatwork saddles — the stresses of jumping impact the billets, stirrup bars, and stitching more heavily. Inspect all stitching, billets, and buckle guards regularly. Replace billets showing any cracking or wear immediately — a broken billet mid-course is a serious safety hazard.</p>
 
-<p>Explore our selection of <a href="/products?discipline=jumping">show jumping saddles</a> at Saddles Market. Every saddle ships with a 30-day free trial — ride it, jump in it, assess it before you commit.</p>`
+<p>Explore our selection of <a href="/products?discipline=jumping">show jumping saddles</a> at Saddles Market. Every saddle ships with a 30-day free trial — ride it, jump in it, assess it before you commit.</p>`,
     },
     {
-      title: 'Trail Riding Saddles: Comfort for the Long Ride',
-      slug: 'trail-riding-saddles-comfort-long-ride',
-      excerpt: 'Trail riding places unique demands on saddle and rider. Hours in the saddle require maximum comfort, stability, and security across varied terrain. Learn what to look for in the perfect trail saddle.',
-      author_name: 'Saddles Market Team',
-      category: 'Discipline Guides',
-      tags: ['trail saddles', 'trail riding', 'endurance saddles', 'western saddles'],
-      meta_title: 'Trail Riding Saddles: Comfort and Performance for Long Rides | Saddles Market',
-      meta_description: 'The best trail riding saddles keep you comfortable for hours. Learn about seat materials, padding systems, weight distribution, and the top features to look for when buying a trail saddle.',
+      title: "Trail Riding Saddles: Comfort for the Long Ride",
+      slug: "trail-riding-saddles-comfort-long-ride",
+      excerpt:
+        "Trail riding places unique demands on saddle and rider. Hours in the saddle require maximum comfort, stability, and security across varied terrain. Learn what to look for in the perfect trail saddle.",
+      author_name: "Saddles Market Team",
+      category: "Discipline Guides",
+      tags: [
+        "trail saddles",
+        "trail riding",
+        "endurance saddles",
+        "western saddles",
+      ],
+      meta_title:
+        "Trail Riding Saddles: Comfort and Performance for Long Rides | Saddles Market",
+      meta_description:
+        "The best trail riding saddles keep you comfortable for hours. Learn about seat materials, padding systems, weight distribution, and the top features to look for when buying a trail saddle.",
       reading_time: 8,
       content: `<h2>The Demands of Trail Riding</h2>
 <p>A trail rider may spend four, six, eight hours or more in the saddle in a single day. Unlike arena work where every 20 minutes brings a change of pace and direction, trail riding involves sustained posting, sitting, and often two-point position over varied terrain. The <a href="/products?discipline=trail">trail saddle</a> must prioritize comfort above almost everything else — for both horse and rider.</p>
@@ -722,17 +786,26 @@ function getBlogPosts() {
 <li>Synthetic materials for easy cleaning and weather resistance</li>
 </ul>
 
-<p>Browse our full range of <a href="/products?discipline=trail">trail and endurance saddles</a>. Our experts are available to help you match the right saddle to your riding style, terrain, and horse's conformation. Every saddle comes with our <a href="/returns-refunds">30-day free trial</a>.</p>`
+<p>Browse our full range of <a href="/products?discipline=trail">trail and endurance saddles</a>. Our experts are available to help you match the right saddle to your riding style, terrain, and horse's conformation. Every saddle comes with our <a href="/returns-refunds">30-day free trial</a>.</p>`,
     },
     {
-      title: 'The History of Horse Saddles: From Ancient Times to Modern Design',
-      slug: 'history-of-horse-saddles-ancient-times-to-modern',
-      excerpt: 'Few pieces of equipment have such a rich history as the horse saddle. From ancient Central Asian pads to modern biomechanically engineered masterpieces, the saddle\'s evolution mirrors the story of human civilization itself.',
-      author_name: 'Saddles Market Team',
-      category: 'Education & History',
-      tags: ['horse saddle history', 'equestrian history', 'western saddle history', 'english saddle history'],
-      meta_title: 'The History of Horse Saddles: From Ancient Origins to Modern Design | Saddles Market',
-      meta_description: 'Explore the fascinating history of horse saddles from ancient Central Asian pads through medieval war saddles to the revolution of modern English and Western design.',
+      title:
+        "The History of Horse Saddles: From Ancient Times to Modern Design",
+      slug: "history-of-horse-saddles-ancient-times-to-modern",
+      excerpt:
+        "Few pieces of equipment have such a rich history as the horse saddle. From ancient Central Asian pads to modern biomechanically engineered masterpieces, the saddle's evolution mirrors the story of human civilization itself.",
+      author_name: "Saddles Market Team",
+      category: "Education & History",
+      tags: [
+        "horse saddle history",
+        "equestrian history",
+        "western saddle history",
+        "english saddle history",
+      ],
+      meta_title:
+        "The History of Horse Saddles: From Ancient Origins to Modern Design | Saddles Market",
+      meta_description:
+        "Explore the fascinating history of horse saddles from ancient Central Asian pads through medieval war saddles to the revolution of modern English and Western design.",
       reading_time: 12,
       content: `<h2>The First Saddles: Ancient Central Asia</h2>
 <p>The horse was domesticated roughly 5,500 years ago on the Eurasian steppes, but early riders sat directly on the horse's back or on simple cloth pads. The earliest true saddles — padded structures designed to distribute the rider's weight — appear in historical and archaeological records from approximately 700 BCE, used by the Scythian peoples of Central Asia.</p>
@@ -773,17 +846,25 @@ function getBlogPosts() {
 
 <p>The finest saddles available today are arguably the finest in human history — combining the accumulated wisdom of centuries of craft tradition with modern materials science and biomechanical understanding.</p>
 
-<p>Explore this living tradition at <a href="/products">Saddles Market</a>, where every saddle represents the best of modern equestrian craft. Our curated selection spans disciplines, budgets, and horse types — all backed by our <a href="/returns-refunds">30-day free trial</a>.</p>`
+<p>Explore this living tradition at <a href="/products">Saddles Market</a>, where every saddle represents the best of modern equestrian craft. Our curated selection spans disciplines, budgets, and horse types — all backed by our <a href="/returns-refunds">30-day free trial</a>.</p>`,
     },
     {
-      title: 'How to Break In a New Leather Saddle',
-      slug: 'how-to-break-in-new-leather-saddle',
-      excerpt: 'A new leather saddle is an investment, and the break-in period is critical. Follow these expert techniques to properly soften, mold, and condition your new saddle for optimum comfort and longevity.',
-      author_name: 'Saddles Market Team',
-      category: 'Saddle Care',
-      tags: ['break in saddle', 'new saddle', 'leather conditioning', 'saddle care'],
-      meta_title: 'How to Break In a New Leather Saddle: Step-by-Step Guide | Saddles Market',
-      meta_description: 'Learn the right way to break in a new leather horse saddle. Our step-by-step guide covers conditioning, riding techniques, and what to avoid to ensure a perfect break-in.',
+      title: "How to Break In a New Leather Saddle",
+      slug: "how-to-break-in-new-leather-saddle",
+      excerpt:
+        "A new leather saddle is an investment, and the break-in period is critical. Follow these expert techniques to properly soften, mold, and condition your new saddle for optimum comfort and longevity.",
+      author_name: "Saddles Market Team",
+      category: "Saddle Care",
+      tags: [
+        "break in saddle",
+        "new saddle",
+        "leather conditioning",
+        "saddle care",
+      ],
+      meta_title:
+        "How to Break In a New Leather Saddle: Step-by-Step Guide | Saddles Market",
+      meta_description:
+        "Learn the right way to break in a new leather horse saddle. Our step-by-step guide covers conditioning, riding techniques, and what to avoid to ensure a perfect break-in.",
       reading_time: 7,
       content: `<h2>Why Breaking In Matters</h2>
 <p>New leather begins its life firm, stiff, and unyielding. The break-in process is what transforms a beautiful but rigid saddle into a supple, body-conforming tool that feels like it was made specifically for you and your horse. Done correctly, the break-in period produces a saddle that fits more perfectly than any factory could achieve. Done incorrectly, it can permanently damage the leather or compromise the saddle's structural integrity.</p>
@@ -840,17 +921,25 @@ function getBlogPosts() {
 <h2>Enjoying the Process</h2>
 <p>Breaking in a fine leather saddle is one of the pleasures of equestrian life. There is a reason that riders treasure their broken-in saddles so deeply — they bear the unique imprint of a specific partnership between horse and rider. Every scratch, every subtle contour, every soft spot tells a story.</p>
 
-<p>All saddles from <a href="/products">Saddles Market</a> are pre-conditioned before shipping. Your saddle arrives ready to ride, with a <a href="/returns-refunds">30-day free trial</a> so you can experience the break-in period with complete confidence.</p>`
+<p>All saddles from <a href="/products">Saddles Market</a> are pre-conditioned before shipping. Your saddle arrives ready to ride, with a <a href="/returns-refunds">30-day free trial</a> so you can experience the break-in period with complete confidence.</p>`,
     },
     {
-      title: 'Barrel Racing Saddles: Speed, Security, and Performance',
-      slug: 'barrel-racing-saddles-speed-security-performance',
-      excerpt: 'Barrel racing demands explosive speed and radical directional changes. The barrel racing saddle must keep you secure through sharp turns while allowing complete freedom of movement. Here is what top competitors look for.',
-      author_name: 'Saddles Market Team',
-      category: 'Discipline Guides',
-      tags: ['barrel racing saddles', 'barrel racing', 'western saddles', 'rodeo'],
-      meta_title: 'Barrel Racing Saddles: Speed, Security & Performance Guide | Saddles Market',
-      meta_description: 'Find the best barrel racing saddle. Learn about seat design, stirrup position, weight, horn height, and the key features professional barrel racers prioritize for winning performance.',
+      title: "Barrel Racing Saddles: Speed, Security, and Performance",
+      slug: "barrel-racing-saddles-speed-security-performance",
+      excerpt:
+        "Barrel racing demands explosive speed and radical directional changes. The barrel racing saddle must keep you secure through sharp turns while allowing complete freedom of movement. Here is what top competitors look for.",
+      author_name: "Saddles Market Team",
+      category: "Discipline Guides",
+      tags: [
+        "barrel racing saddles",
+        "barrel racing",
+        "western saddles",
+        "rodeo",
+      ],
+      meta_title:
+        "Barrel Racing Saddles: Speed, Security & Performance Guide | Saddles Market",
+      meta_description:
+        "Find the best barrel racing saddle. Learn about seat design, stirrup position, weight, horn height, and the key features professional barrel racers prioritize for winning performance.",
       reading_time: 7,
       content: `<h2>The Barrel Racing Discipline</h2>
 <p>Barrel racing is one of the fastest and most athletic of all Western disciplines. In competition, horse and rider run a cloverleaf pattern around three barrels placed in a triangle, returning to the starting gate as fast as possible. Times are measured in fractions of a second, and the slightest loss of balance or security can cost a placing or even cause a fall.</p>
@@ -891,17 +980,25 @@ function getBlogPosts() {
 <li><strong>Tex Tan:</strong> Longstanding American brand; proven performance at competitive prices</li>
 </ul>
 
-<p>See our complete selection of <a href="/products?discipline=barrel_racing">barrel racing saddles</a> at Saddles Market. Whether you are competing at local jackpots or national finals, we have the right saddle for your horse and your riding style. All purchases include our 30-day free trial.</p>`
+<p>See our complete selection of <a href="/products?discipline=barrel_racing">barrel racing saddles</a> at Saddles Market. Whether you are competing at local jackpots or national finals, we have the right saddle for your horse and your riding style. All purchases include our 30-day free trial.</p>`,
     },
     {
-      title: 'Horse Saddle Care in Winter: Essential Seasonal Tips',
-      slug: 'horse-saddle-care-winter-essential-seasonal-tips',
-      excerpt: 'Winter presents unique challenges for leather care. Cold temperatures, wet conditions, and reduced riding schedules can all cause damage if you don\'t know how to protect your investment through the colder months.',
-      author_name: 'Saddles Market Team',
-      category: 'Saddle Care',
-      tags: ['saddle care', 'winter riding', 'leather maintenance', 'saddle storage'],
-      meta_title: 'Horse Saddle Care in Winter: Essential Seasonal Tips | Saddles Market',
-      meta_description: 'Protect your horse saddle through winter. Essential tips on cleaning after wet rides, conditioning for cold weather, proper storage, and preventing damage during reduced riding seasons.',
+      title: "Horse Saddle Care in Winter: Essential Seasonal Tips",
+      slug: "horse-saddle-care-winter-essential-seasonal-tips",
+      excerpt:
+        "Winter presents unique challenges for leather care. Cold temperatures, wet conditions, and reduced riding schedules can all cause damage if you don't know how to protect your investment through the colder months.",
+      author_name: "Saddles Market Team",
+      category: "Saddle Care",
+      tags: [
+        "saddle care",
+        "winter riding",
+        "leather maintenance",
+        "saddle storage",
+      ],
+      meta_title:
+        "Horse Saddle Care in Winter: Essential Seasonal Tips | Saddles Market",
+      meta_description:
+        "Protect your horse saddle through winter. Essential tips on cleaning after wet rides, conditioning for cold weather, proper storage, and preventing damage during reduced riding seasons.",
       reading_time: 6,
       content: `<h2>Why Winter is Hard on Leather Saddles</h2>
 <p>Leather is a hygroscopic material — it absorbs and releases moisture from its environment. Winter presents multiple challenges: cold temperatures make leather stiff and brittle, wet conditions (rain, snow, sleet) can saturate and damage the hide fiber, and the combination of cold-to-warm transitions (tack room to heated arena) creates rapid moisture cycling that stresses the leather.</p>
@@ -951,8 +1048,8 @@ function getBlogPosts() {
 <h2>Metal Hardware Care</h2>
 <p>Don't forget the metal components — stirrup irons, buckles, and D-rings. Clean metal hardware with a dry cloth after wet rides. Stainless steel is largely self-maintaining, but zinc-coated or chrome hardware benefits from occasional application of a light machine oil to prevent surface rust.</p>
 
-<p>Need help choosing products for winter saddle care? Visit our <a href="/contact">contact page</a> or browse our <a href="/products?category=saddle-accessories">saddle accessories collection</a> for recommended cleaning and conditioning products.</p>`
-    }
+<p>Need help choosing products for winter saddle care? Visit our <a href="/contact">contact page</a> or browse our <a href="/products?category=saddle-accessories">saddle accessories collection</a> for recommended cleaning and conditioning products.</p>`,
+    },
   ];
 }
 

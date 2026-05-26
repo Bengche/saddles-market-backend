@@ -1,5 +1,5 @@
-const sgMail = require('@sendgrid/mail');
-const SITE_CONFIG = require('../config/siteConfig');
+const sgMail = require("@sendgrid/mail");
+const SITE_CONFIG = require("../config/siteConfig");
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
@@ -21,7 +21,7 @@ const sendEmail = async ({ to, subject, html, text, replyTo }) => {
     console.log(`Email sent: "${subject}" to ${to}`);
     return { success: true };
   } catch (err) {
-    console.error('SendGrid error:', err.response?.body?.errors || err.message);
+    console.error("SendGrid error:", err.response?.body?.errors || err.message);
     // Don't throw — email failures should not crash the main operation
     return { success: false, error: err.message };
   }
@@ -39,8 +39,8 @@ const sendBulkEmail = async (recipients, subject, html, text) => {
     const personalizations = batch.map((r) => ({
       to: [{ email: r.email, name: r.name || r.email }],
       substitutions: {
-        '{{unsubscribe_token}}': r.unsubscribe_token || '',
-        '{{first_name}}': r.first_name || 'Valued Customer',
+        "{{unsubscribe_token}}": r.unsubscribe_token || "",
+        "{{first_name}}": r.first_name || "Valued Customer",
       },
     }));
 
@@ -59,7 +59,7 @@ const sendBulkEmail = async (recipients, subject, html, text) => {
       await sgMail.send(msg);
       results.push({ success: true, count: batch.length });
     } catch (err) {
-      console.error('Bulk email error:', err.message);
+      console.error("Bulk email error:", err.message);
       results.push({ success: false, error: err.message });
     }
   }

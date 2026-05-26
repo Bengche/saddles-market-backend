@@ -1,19 +1,31 @@
-const cron = require('node-cron');
-const pool = require('../config/database');
-const { sendEmail } = require('../utils/emailService');
-const { cartAbandonmentTemplate } = require('../utils/emailTemplates');
+const cron = require("node-cron");
+const pool = require("../config/database");
+const { sendEmail } = require("../utils/emailService");
+const { cartAbandonmentTemplate } = require("../utils/emailTemplates");
 
 const TRIGGERS = [
-  { emailNumber: 1, hoursAfter: 24, subject: 'You left something behind...' },
-  { emailNumber: 2, hoursAfter: 72, subject: 'Still thinking it over? Your saddle is waiting' },
-  { emailNumber: 3, hoursAfter: 168, subject: 'Last chance — your cart is about to expire' },
+  { emailNumber: 1, hoursAfter: 24, subject: "You left something behind..." },
+  {
+    emailNumber: 2,
+    hoursAfter: 72,
+    subject: "Still thinking it over? Your saddle is waiting",
+  },
+  {
+    emailNumber: 3,
+    hoursAfter: 168,
+    subject: "Last chance — your cart is about to expire",
+  },
 ];
 
 async function runCartAbandonmentJob() {
   try {
     for (const trigger of TRIGGERS) {
-      const cutoff = new Date(Date.now() - trigger.hoursAfter * 60 * 60 * 1000).toISOString();
-      const recent = new Date(Date.now() - (trigger.hoursAfter + 24) * 60 * 60 * 1000).toISOString();
+      const cutoff = new Date(
+        Date.now() - trigger.hoursAfter * 60 * 60 * 1000,
+      ).toISOString();
+      const recent = new Date(
+        Date.now() - (trigger.hoursAfter + 24) * 60 * 60 * 1000,
+      ).toISOString();
 
       // Find users with cart items abandoned in the relevant time window
       // who haven't yet received this specific abandonment email
@@ -33,7 +45,7 @@ async function runCartAbandonmentJob() {
              SELECT 1 FROM orders o
              WHERE o.user_id = u.id AND o.created_at >= ci.updated_at
            )`,
-        [cutoff, recent, trigger.emailNumber]
+        [cutoff, recent, trigger.emailNumber],
       );
 
       for (const row of result.rows) {
@@ -44,7 +56,7 @@ async function runCartAbandonmentJob() {
            JOIN products p ON p.id = ci.product_id
            LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_primary = TRUE
            WHERE ci.user_id = $1`,
-          [row.user_id]
+          [row.user_id],
         );
 
         if (!cartItems.rows.length) continue;
@@ -66,23 +78,23 @@ async function runCartAbandonmentJob() {
             `INSERT INTO cart_abandonment_emails (user_id, email_number)
              VALUES ($1, $2)
              ON CONFLICT (user_id, email_number) DO NOTHING`,
-            [row.user_id, trigger.emailNumber]
+            [row.user_id, trigger.emailNumber],
           );
         }
       }
     }
   } catch (err) {
-    console.error('[CartAbandonmentJob] Error:', err.message);
+    console.error("[CartAbandonmentJob] Error:", err.message);
   }
 }
 
 function startCartAbandonmentJob() {
   // Run every day at 10:00 AM UTC
-  cron.schedule('0 10 * * *', () => {
-    console.log('[CartAbandonmentJob] Running...');
+  cron.schedule("0 10 * * *", () => {
+    console.log("[CartAbandonmentJob] Running...");
     runCartAbandonmentJob();
   });
-  console.log('[CartAbandonmentJob] Scheduled (daily 10:00 UTC)');
+  console.log("[CartAbandonmentJob] Scheduled (daily 10:00 UTC)");
 }
 
 module.exports = { startCartAbandonmentJob, runCartAbandonmentJob };

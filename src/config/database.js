@@ -1,9 +1,9 @@
-const { Pool } = require('pg');
+const { Pool } = require("pg");
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl:
-    process.env.NODE_ENV === 'production'
+    process.env.NODE_ENV === "production"
       ? { rejectUnauthorized: false }
       : false,
   max: 20,
@@ -11,16 +11,16 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 });
 
-pool.on('error', (err) => {
-  console.error('Unexpected PostgreSQL client error:', err.message);
+pool.on("error", (err) => {
+  console.error("Unexpected PostgreSQL client error:", err.message);
 });
 
 // Test connection on startup
-pool.query('SELECT NOW()', (err) => {
+pool.query("SELECT NOW()", (err) => {
   if (err) {
-    console.error('Database connection failed:', err.message);
+    console.error("Database connection failed:", err.message);
   } else {
-    console.log('Database connected successfully.');
+    console.log("Database connected successfully.");
   }
 });
 

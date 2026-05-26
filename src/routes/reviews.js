@@ -1,14 +1,16 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const pool = require('../config/database');
-const { protect } = require('../middleware/auth');
+const pool = require("../config/database");
+const { protect } = require("../middleware/auth");
 
-router.post('/', protect, async (req, res, next) => {
+router.post("/", protect, async (req, res, next) => {
   try {
     const { productId, rating, title, body } = req.body;
 
     if (!rating || rating < 1 || rating > 5) {
-      return res.status(400).json({ success: false, message: 'Rating must be between 1 and 5.' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Rating must be between 1 and 5." });
     }
 
     // Check if user purchased this product
@@ -17,7 +19,7 @@ router.post('/', protect, async (req, res, next) => {
        JOIN order_items oi ON oi.order_id = o.id
        WHERE o.user_id = $1 AND oi.product_id = $2 AND o.status = 'delivered'
        LIMIT 1`,
-      [req.user.id, productId]
+      [req.user.id, productId],
     );
 
     const isVerified = purchase.rows.length > 0;
@@ -27,19 +29,19 @@ router.post('/', protect, async (req, res, next) => {
        VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT (product_id, user_id) DO UPDATE
        SET rating = $3, title = $4, body = $5, is_verified = $6, is_approved = FALSE`,
-      [productId, req.user.id, rating, title || null, body, isVerified]
+      [productId, req.user.id, rating, title || null, body, isVerified],
     );
 
     res.status(201).json({
       success: true,
-      message: 'Review submitted. It will be visible after approval.',
+      message: "Review submitted. It will be visible after approval.",
     });
   } catch (err) {
     next(err);
   }
 });
 
-router.get('/product/:productId', async (req, res, next) => {
+router.get("/product/:productId", async (req, res, next) => {
   try {
     const result = await pool.query(
       `SELECT pr.*, u.first_name, u.last_name
@@ -47,7 +49,7 @@ router.get('/product/:productId', async (req, res, next) => {
        JOIN users u ON u.id = pr.user_id
        WHERE pr.product_id = $1 AND pr.is_approved = TRUE
        ORDER BY pr.created_at DESC`,
-      [req.params.productId]
+      [req.params.productId],
     );
 
     res.json({ success: true, data: { reviews: result.rows } });

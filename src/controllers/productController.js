@@ -1,7 +1,7 @@
-const { validationResult } = require('express-validator');
-const pool = require('../config/database');
-const cloudinary = require('../config/cloudinary');
-const slugify = require('slugify');
+const { validationResult } = require("express-validator");
+const pool = require("../config/database");
+const cloudinary = require("../config/cloudinary");
+const slugify = require("slugify");
 
 // ─── List Products ─────────────────────────────────────────────────────────────
 const getProducts = async (req, res, next) => {
@@ -14,14 +14,14 @@ const getProducts = async (req, res, next) => {
       minPrice,
       maxPrice,
       search,
-      sort = 'created_at_desc',
+      sort = "created_at_desc",
       featured,
       seatSize,
     } = req.query;
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
     const params = [];
-    const conditions = ['p.is_active = TRUE'];
+    const conditions = ["p.is_active = TRUE"];
 
     if (category) {
       params.push(category);
@@ -43,31 +43,34 @@ const getProducts = async (req, res, next) => {
       params.push(seatSize);
       conditions.push(`p.seat_size = $${params.length}`);
     }
-    if (featured === 'true') {
-      conditions.push('p.is_featured = TRUE');
+    if (featured === "true") {
+      conditions.push("p.is_featured = TRUE");
     }
     if (search) {
-      params.push('%' + search.toLowerCase() + '%');
-      conditions.push(`(LOWER(p.name) LIKE $${params.length} OR LOWER(p.description) LIKE $${params.length})`);
+      params.push("%" + search.toLowerCase() + "%");
+      conditions.push(
+        `(LOWER(p.name) LIKE $${params.length} OR LOWER(p.description) LIKE $${params.length})`,
+      );
     }
 
     const sortMap = {
-      created_at_desc: 'p.created_at DESC',
-      price_asc: 'p.price ASC',
-      price_desc: 'p.price DESC',
-      name_asc: 'p.name ASC',
-      rating_desc: 'p.average_rating DESC',
-      popular: 'p.sold_count DESC',
+      created_at_desc: "p.created_at DESC",
+      price_asc: "p.price ASC",
+      price_desc: "p.price DESC",
+      name_asc: "p.name ASC",
+      rating_desc: "p.average_rating DESC",
+      popular: "p.sold_count DESC",
     };
-    const orderBy = sortMap[sort] || 'p.created_at DESC';
+    const orderBy = sortMap[sort] || "p.created_at DESC";
 
-    const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
+    const whereClause =
+      conditions.length > 0 ? "WHERE " + conditions.join(" AND ") : "";
 
     const countResult = await pool.query(
       `SELECT COUNT(*) FROM products p
        LEFT JOIN categories c ON c.id = p.category_id
        ${whereClause}`,
-      params
+      params,
     );
 
     const totalCount = parseInt(countResult.rows[0].count);
@@ -87,7 +90,7 @@ const getProducts = async (req, res, next) => {
        ${whereClause}
        ORDER BY ${orderBy}
        LIMIT $${params.length - 1} OFFSET $${params.length}`,
-      params
+      params,
     );
 
     res.json({
@@ -118,19 +121,21 @@ const getProduct = async (req, res, next) => {
        FROM products p
        LEFT JOIN categories c ON c.id = p.category_id
        WHERE p.slug = $1 AND p.is_active = TRUE`,
-      [slug]
+      [slug],
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Product not found.' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found." });
     }
 
     const product = result.rows[0];
 
     // Get images
     const images = await pool.query(
-      'SELECT * FROM product_images WHERE product_id = $1 ORDER BY is_primary DESC, sort_order ASC',
-      [product.id]
+      "SELECT * FROM product_images WHERE product_id = $1 ORDER BY is_primary DESC, sort_order ASC",
+      [product.id],
     );
 
     // Get approved reviews
@@ -140,7 +145,7 @@ const getProduct = async (req, res, next) => {
        JOIN users u ON u.id = pr.user_id
        WHERE pr.product_id = $1 AND pr.is_approved = TRUE
        ORDER BY pr.created_at DESC LIMIT 10`,
-      [product.id]
+      [product.id],
     );
 
     // Get related products
@@ -150,7 +155,7 @@ const getProduct = async (req, res, next) => {
        FROM products p
        WHERE p.category_id = $1 AND p.id != $2 AND p.is_active = TRUE
        LIMIT 4`,
-      [product.category_id, product.id]
+      [product.category_id, product.id],
     );
 
     res.json({
@@ -178,7 +183,7 @@ const getCategories = async (req, res, next) => {
        LEFT JOIN products p ON p.category_id = c.id AND p.is_active = TRUE
        WHERE c.is_active = TRUE
        GROUP BY c.id
-       ORDER BY c.sort_order ASC`
+       ORDER BY c.sort_order ASC`,
     );
 
     res.json({ success: true, data: { categories: result.rows } });
@@ -196,21 +201,49 @@ const createProduct = async (req, res, next) => {
     }
 
     const {
-      name, categoryId, discipline, shortDescription, description, price, comparePrice,
-      costPrice, stockQuantity, lowStockThreshold, weightLbs, seatSize, gulletWidth,
-      treeType, leatherType, leatherOrigin, hornHeight, cantleHeight, rigging, fenderType,
-      stirrupType, color, warranty, brand, countryOfOrigin, condition, isFeatured,
-      isTrialEligible, metaTitle, metaDescription, metaKeywords, tags, images,
+      name,
+      categoryId,
+      discipline,
+      shortDescription,
+      description,
+      price,
+      comparePrice,
+      costPrice,
+      stockQuantity,
+      lowStockThreshold,
+      weightLbs,
+      seatSize,
+      gulletWidth,
+      treeType,
+      leatherType,
+      leatherOrigin,
+      hornHeight,
+      cantleHeight,
+      rigging,
+      fenderType,
+      stirrupType,
+      color,
+      warranty,
+      brand,
+      countryOfOrigin,
+      condition,
+      isFeatured,
+      isTrialEligible,
+      metaTitle,
+      metaDescription,
+      metaKeywords,
+      tags,
+      images,
     } = req.body;
 
     let slug = slugify(name, { lower: true, strict: true });
     // Ensure unique slug
     const existing = await pool.query(
       "SELECT id FROM products WHERE slug LIKE $1",
-      [slug + '%']
+      [slug + "%"],
     );
     if (existing.rows.length > 0) {
-      slug = slug + '-' + Date.now();
+      slug = slug + "-" + Date.now();
     }
 
     const result = await pool.query(
@@ -226,16 +259,40 @@ const createProduct = async (req, res, next) => {
          $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33)
        RETURNING *`,
       [
-        name, slug, categoryId || null, discipline || null, shortDescription, description,
-        price, comparePrice || null, costPrice || null, stockQuantity || 0, lowStockThreshold || 5,
-        weightLbs || null, seatSize || null, gulletWidth || null, treeType || null,
-        leatherType || null, leatherOrigin || null, hornHeight || null, cantleHeight || null,
-        rigging || null, fenderType || null, stirrupType || null, color || null,
-        warranty || null, brand || null, countryOfOrigin || null, condition || 'new',
-        isFeatured || false, isTrialEligible !== false,
-        metaTitle || name, metaDescription || shortDescription, metaKeywords || null,
+        name,
+        slug,
+        categoryId || null,
+        discipline || null,
+        shortDescription,
+        description,
+        price,
+        comparePrice || null,
+        costPrice || null,
+        stockQuantity || 0,
+        lowStockThreshold || 5,
+        weightLbs || null,
+        seatSize || null,
+        gulletWidth || null,
+        treeType || null,
+        leatherType || null,
+        leatherOrigin || null,
+        hornHeight || null,
+        cantleHeight || null,
+        rigging || null,
+        fenderType || null,
+        stirrupType || null,
+        color || null,
+        warranty || null,
+        brand || null,
+        countryOfOrigin || null,
+        condition || "new",
+        isFeatured || false,
+        isTrialEligible !== false,
+        metaTitle || name,
+        metaDescription || shortDescription,
+        metaKeywords || null,
         tags || null,
-      ]
+      ],
     );
 
     const product = result.rows[0];
@@ -246,7 +303,14 @@ const createProduct = async (req, res, next) => {
         await pool.query(
           `INSERT INTO product_images (product_id, cloudinary_id, url, alt_text, is_primary, sort_order)
            VALUES ($1, $2, $3, $4, $5, $6)`,
-          [product.id, images[i].cloudinaryId, images[i].url, images[i].altText || name, i === 0, i]
+          [
+            product.id,
+            images[i].cloudinaryId,
+            images[i].url,
+            images[i].altText || name,
+            i === 0,
+            i,
+          ],
         );
       }
     }
@@ -265,19 +329,48 @@ const updateProduct = async (req, res, next) => {
 
     // Build dynamic update query
     const allowedFields = [
-      'name', 'category_id', 'discipline', 'short_description', 'description',
-      'price', 'compare_price', 'cost_price', 'stock_quantity', 'low_stock_threshold',
-      'weight_lbs', 'seat_size', 'gullet_width', 'tree_type', 'leather_type', 'leather_origin',
-      'horn_height', 'cantle_height', 'rigging', 'fender_type', 'stirrup_type', 'color',
-      'warranty', 'brand', 'country_of_origin', 'condition', 'is_featured', 'is_active',
-      'is_trial_eligible', 'meta_title', 'meta_description', 'meta_keywords', 'tags',
+      "name",
+      "category_id",
+      "discipline",
+      "short_description",
+      "description",
+      "price",
+      "compare_price",
+      "cost_price",
+      "stock_quantity",
+      "low_stock_threshold",
+      "weight_lbs",
+      "seat_size",
+      "gullet_width",
+      "tree_type",
+      "leather_type",
+      "leather_origin",
+      "horn_height",
+      "cantle_height",
+      "rigging",
+      "fender_type",
+      "stirrup_type",
+      "color",
+      "warranty",
+      "brand",
+      "country_of_origin",
+      "condition",
+      "is_featured",
+      "is_active",
+      "is_trial_eligible",
+      "meta_title",
+      "meta_description",
+      "meta_keywords",
+      "tags",
     ];
 
     const updates = [];
     const values = [];
 
     for (const field of allowedFields) {
-      const camelField = field.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+      const camelField = field.replace(/_([a-z])/g, (_, letter) =>
+        letter.toUpperCase(),
+      );
       if (fields[camelField] !== undefined) {
         updates.push(`${field} = $${values.length + 1}`);
         values.push(fields[camelField]);
@@ -285,13 +378,15 @@ const updateProduct = async (req, res, next) => {
     }
 
     if (updates.length === 0) {
-      return res.status(400).json({ success: false, message: 'No fields to update.' });
+      return res
+        .status(400)
+        .json({ success: false, message: "No fields to update." });
     }
 
     values.push(id);
     const result = await pool.query(
-      `UPDATE products SET ${updates.join(', ')} WHERE id = $${values.length} RETURNING *`,
-      values
+      `UPDATE products SET ${updates.join(", ")} WHERE id = $${values.length} RETURNING *`,
+      values,
     );
 
     res.json({ success: true, data: { product: result.rows[0] } });
@@ -307,12 +402,14 @@ const deleteProduct = async (req, res, next) => {
 
     // Get cloudinary IDs to delete
     const images = await pool.query(
-      'SELECT cloudinary_id FROM product_images WHERE product_id = $1',
-      [id]
+      "SELECT cloudinary_id FROM product_images WHERE product_id = $1",
+      [id],
     );
 
     // Soft delete product
-    await pool.query('UPDATE products SET is_active = FALSE WHERE id = $1', [id]);
+    await pool.query("UPDATE products SET is_active = FALSE WHERE id = $1", [
+      id,
+    ]);
 
     // Delete cloudinary images
     for (const img of images.rows) {
@@ -323,7 +420,7 @@ const deleteProduct = async (req, res, next) => {
       }
     }
 
-    res.json({ success: true, message: 'Product removed.' });
+    res.json({ success: true, message: "Product removed." });
   } catch (err) {
     next(err);
   }

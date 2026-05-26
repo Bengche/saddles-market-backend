@@ -1,15 +1,15 @@
-const rateLimit = require('express-rate-limit');
+const rateLimit = require("express-rate-limit");
 
 const generalLimiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
   message: {
     success: false,
-    message: 'Too many requests from this IP. Please try again in 15 minutes.',
+    message: "Too many requests from this IP. Please try again in 15 minutes.",
   },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => req.method === 'OPTIONS',
+  skip: (req) => req.method === "OPTIONS",
 });
 
 const authLimiter = rateLimit({
@@ -17,7 +17,8 @@ const authLimiter = rateLimit({
   max: parseInt(process.env.AUTH_RATE_LIMIT_MAX) || 10,
   message: {
     success: false,
-    message: 'Too many authentication attempts. Please try again in 15 minutes.',
+    message:
+      "Too many authentication attempts. Please try again in 15 minutes.",
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -28,7 +29,8 @@ const contactLimiter = rateLimit({
   max: 5,
   message: {
     success: false,
-    message: 'Too many messages sent. Please wait an hour before sending another.',
+    message:
+      "Too many messages sent. Please wait an hour before sending another.",
   },
 });
 
@@ -37,7 +39,7 @@ const newsletterLimiter = rateLimit({
   max: 3,
   message: {
     success: false,
-    message: 'Too many subscription attempts. Please try again later.',
+    message: "Too many subscription attempts. Please try again later.",
   },
 });
 
