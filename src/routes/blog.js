@@ -69,7 +69,7 @@ router.get("/:slug", async (req, res, next) => {
     const related = await pool.query(
       `SELECT id, title, slug, excerpt, cover_image, category, read_time, published_at
        FROM blog_posts
-       WHERE category = $1 AND slug != $2 AND published = TRUE
+       WHERE category = $1 AND slug != $2 AND is_published = TRUE
        ORDER BY published_at DESC LIMIT 3`,
       [post.category, post.slug],
     );
