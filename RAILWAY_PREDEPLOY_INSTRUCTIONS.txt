@@ -1,0 +1,6 @@
+// Railway preDeployCommand: Run database setup before deployment
+// Add this to your Railway project settings (not as a file in your repo):
+//
+// preDeployCommand: "npm run setup-db"
+//
+// This will run `node scripts/setup-db.js` after build, with full network and environment access.
