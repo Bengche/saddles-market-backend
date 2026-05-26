@@ -7,7 +7,7 @@ router.get("/", async (req, res, next) => {
     const { page = 1, limit = 9, category } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
-    let where = `WHERE bp.published = TRUE`;
+    let where = `WHERE bp.is_published = TRUE`;
     const params = [];
 
     if (category) {
@@ -53,7 +53,7 @@ router.get("/", async (req, res, next) => {
 router.get("/:slug", async (req, res, next) => {
   try {
     const result = await pool.query(
-      `SELECT * FROM blog_posts WHERE slug = $1 AND published = TRUE LIMIT 1`,
+      `SELECT * FROM blog_posts WHERE slug = $1 AND is_published = TRUE LIMIT 1`,
       [req.params.slug],
     );
 

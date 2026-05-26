@@ -10,7 +10,8 @@ const {
 } = require("../controllers/cartController");
 const { optionalAuth, protect } = require("../middleware/auth");
 
-router.get("/", optionalAuth, getCart);
+// Handle both /cart and /cart/ for GET
+router.get(["/", ""], optionalAuth, getCart);
 router.post("/add", optionalAuth, addToCart);
 router.put("/item/:id", optionalAuth, updateCartItem);
 router.delete("/item/:id", optionalAuth, removeFromCart);

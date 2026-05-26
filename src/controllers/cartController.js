@@ -24,7 +24,8 @@ const getCart = async (req, res, next) => {
                WHERE ci.session_id = $1 AND p.is_active = TRUE`;
       params = [sessionId];
     } else {
-      return res.json({ success: true, data: { items: [], total: 0 } });
+      // Always return a valid empty cart object, never 404
+      return res.json({ success: true, data: { items: [], subtotal: 0 } });
     }
 
     const result = await pool.query(query, params);
