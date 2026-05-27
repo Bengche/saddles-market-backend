@@ -118,6 +118,7 @@ function getBlogPosts() {
       meta_description:
         "Learn how to choose the perfect horse saddle. Our expert guide covers discipline, fit, leather quality, seat size, gullet width, and more to help you find the right saddle.",
       reading_time: 12,
+      cover_image: "https://media.istockphoto.com/id/2163238499/photo/brown-leather-saddle-hanging-on-wooden-wall-at-stable-or-barn-professional-equestrian-horse.jpg?s=612x612&w=0&k=20&c=ASLzmKjV2AzNgYVwyjRMqSnsPLDDxnMOK7oU0TYGQkQ=",
       content: `<h2>Why Choosing the Right Saddle Matters</h2>
 <p>The saddle is the primary interface between rider and horse. A well-fitted saddle promotes correct biomechanics, prevents pain, and enhances communication. A poorly fitted saddle can cause back problems, behavioral issues, and long-term injury for both horse and rider.</p>
 
@@ -208,6 +209,8 @@ function getBlogPosts() {
 <p>Have questions? Our team of expert equestrians is available by <a href="/contact">phone, email, or WhatsApp</a> to guide you through your decision.</p>`,
     },
     {
+      // Western vs. English Saddles
+      cover_image: "https://saddleonlineshop.com/cdn/shop/products/9075PonySS_2.jpg?v=1640371922",
       title: "Western vs. English Saddles: Which is Right for You?",
       slug: "western-vs-english-saddles-which-is-right-for-you",
       excerpt:
@@ -300,6 +303,8 @@ function getBlogPosts() {
 <p>Still undecided? Our team at <a href="/contact">Saddles Market</a> is here to help. With our 30-day trial policy, you can order with confidence and see how your chosen saddle truly feels on your rides.</p>`,
     },
     {
+      // How to Properly Fit a Saddle to Your Horse
+      cover_image: "https://i.ebayimg.com/images/g/C7AAAOSwgjxlAEVo/s-l400.jpg",
       title: "How to Properly Fit a Saddle to Your Horse",
       slug: "how-to-properly-fit-saddle-horse",
       excerpt:
@@ -383,6 +388,8 @@ function getBlogPosts() {
 <p>At <a href="/">Saddles Market</a>, we provide a <strong>30-day free trial</strong> on every saddle precisely because we understand how critical fit is. If a saddle does not fit your horse correctly when it arrives, contact our team immediately. We will work with you on an exchange or full refund — no questions asked.</p>`,
     },
     {
+      // The Art of Saddle Leather: Quality, Care and Longevity
+      cover_image: "https://batessaddles.eu/cdn/shop/files/900f5e982bd95b47f29f9206e397d759.png?v=1729221812",
       title: "The Art of Saddle Leather: Quality, Care and Longevity",
       slug: "art-of-saddle-leather-quality-care-longevity",
       excerpt:
@@ -483,6 +490,8 @@ function getBlogPosts() {
 <p>All <a href="/products">saddles at Saddles Market</a> are pre-conditioned before shipping. They arrive ready to use, and our <a href="/returns-refunds">30-day trial</a> gives you ample time to assess fit and feel during the break-in period.</p>`,
     },
     {
+      // Understanding Saddle Gullet Width and Why It Matters
+      cover_image: "https://oursaddlery.com/wp-content/uploads/2021/05/Jumping_Saddle_Prestige_Paris_Classic_Black_1.jpg",
       title: "Understanding Saddle Gullet Width and Why It Matters",
       slug: "understanding-saddle-gullet-width",
       excerpt:
@@ -584,6 +593,8 @@ function getBlogPosts() {
 <p>Browse our selection of <a href="/products">saddles with changeable gullet systems</a> at Saddles Market. All purchases come with our <a href="/returns-refunds">30-day free trial</a>, giving you the opportunity to verify fit in real riding conditions.</p>`,
     },
     {
+      // Dressage Saddles: A Complete Buyer's Guide
+      cover_image: "https://farmandranchdepot.com/images/product/KS-Braden-Trail-Saddle-KS2634.jpeg",
       title: "Dressage Saddles: A Complete Buyer's Guide",
       slug: "dressage-saddles-complete-buyers-guide",
       excerpt:
@@ -668,6 +679,8 @@ function getBlogPosts() {
 <p>Questions about our dressage saddle selection? <a href="/contact">Contact our team</a> — we love talking dressage.</p>`,
     },
     {
+      // Show Jumping Saddles: What Every Jumper Needs to Know
+      cover_image: "https://www.chicksaddlery.com/Merchant2/graphics/00000001/WT5394_271x380_2.jpg",
       title: "Show Jumping Saddles: What Every Jumper Needs to Know",
       slug: "show-jumping-saddles-what-every-jumper-needs-to-know",
       excerpt:
@@ -722,6 +735,8 @@ function getBlogPosts() {
 <p>Explore our selection of <a href="/products?discipline=jumping">show jumping saddles</a> at Saddles Market. Every saddle ships with a 30-day free trial — ride it, jump in it, assess it before you commit.</p>`,
     },
     {
+      // Trail Riding Saddles: Comfort for the Long Ride
+      cover_image: "https://batessaddles.eu/cdn/shop/files/900f5e982bd95b47f29f9206e397d759.png?v=1729221812",
       title: "Trail Riding Saddles: Comfort for the Long Ride",
       slug: "trail-riding-saddles-comfort-long-ride",
       excerpt:
@@ -789,6 +804,8 @@ function getBlogPosts() {
 <p>Browse our full range of <a href="/products?discipline=trail">trail and endurance saddles</a>. Our experts are available to help you match the right saddle to your riding style, terrain, and horse's conformation. Every saddle comes with our <a href="/returns-refunds">30-day free trial</a>.</p>`,
     },
     {
+      // The History of Horse Saddles: From Ancient Times to Modern Design
+      cover_image: "https://saddleonlineshop.com/cdn/shop/products/9075PonySS_2.jpg?v=1640371922",
       title:
         "The History of Horse Saddles: From Ancient Times to Modern Design",
       slug: "history-of-horse-saddles-ancient-times-to-modern",
@@ -849,6 +866,8 @@ function getBlogPosts() {
 <p>Explore this living tradition at <a href="/products">Saddles Market</a>, where every saddle represents the best of modern equestrian craft. Our curated selection spans disciplines, budgets, and horse types — all backed by our <a href="/returns-refunds">30-day free trial</a>.</p>`,
     },
     {
+      // How to Break In a New Leather Saddle
+      cover_image: "https://i.ebayimg.com/images/g/C7AAAOSwgjxlAEVo/s-l400.jpg",
       title: "How to Break In a New Leather Saddle",
       slug: "how-to-break-in-new-leather-saddle",
       excerpt:
@@ -924,6 +943,8 @@ function getBlogPosts() {
 <p>All saddles from <a href="/products">Saddles Market</a> are pre-conditioned before shipping. Your saddle arrives ready to ride, with a <a href="/returns-refunds">30-day free trial</a> so you can experience the break-in period with complete confidence.</p>`,
     },
     {
+      // Barrel Racing Saddles: Speed, Security, and Performance
+      cover_image: "https://media.istockphoto.com/id/2163238499/photo/brown-leather-saddle-hanging-on-wooden-wall-at-stable-or-barn-professional-equestrian-horse.jpg?s=612x612&w=0&k=20&c=ASLzmKjV2AzNgYVwyjRMqSnsPLDDxnMOK7oU0TYGQkQ=",
       title: "Barrel Racing Saddles: Speed, Security, and Performance",
       slug: "barrel-racing-saddles-speed-security-performance",
       excerpt:
@@ -983,6 +1004,8 @@ function getBlogPosts() {
 <p>See our complete selection of <a href="/products?discipline=barrel_racing">barrel racing saddles</a> at Saddles Market. Whether you are competing at local jackpots or national finals, we have the right saddle for your horse and your riding style. All purchases include our 30-day free trial.</p>`,
     },
     {
+      // Horse Saddle Care in Winter: Essential Seasonal Tips
+      cover_image: "https://farmandranchdepot.com/images/product/KS-Braden-Trail-Saddle-KS2634.jpeg",
       title: "Horse Saddle Care in Winter: Essential Seasonal Tips",
       slug: "horse-saddle-care-winter-essential-seasonal-tips",
       excerpt:
