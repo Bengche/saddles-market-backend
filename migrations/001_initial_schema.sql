@@ -10,6 +10,11 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ─── ENUMS ────────────────────────────────────────────────────────────────────
 
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+    DROP TYPE user_role CASCADE;
+  END IF;
+END $$;
 CREATE TYPE user_role AS ENUM ('customer', 'admin');
 CREATE TYPE order_status AS ENUM ('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'rejected', 'refund_requested', 'refunded');
 CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
