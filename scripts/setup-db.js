@@ -118,7 +118,7 @@ function getBlogPosts() {
       meta_description:
         "Learn how to choose the perfect horse saddle. Our expert guide covers discipline, fit, leather quality, seat size, gullet width, and more to help you find the right saddle.",
       reading_time: 12,
-      cover_image: "https://media.istockphoto.com/id/2163238499/photo/brown-leather-saddle-hanging-on-wooden-wall-at-stable-or-barn-professional-equestrian-horse.jpg?s=612x612&w=0&k=20&c=ASLzmKjV2AzNgYVwyjRMqSnsPLDDxnMOK7oU0TYGQkQ=",
+      // cover_image removed
       content: `<h2>Why Choosing the Right Saddle Matters</h2>
 <p>The saddle is the primary interface between rider and horse. A well-fitted saddle promotes correct biomechanics, prevents pain, and enhances communication. A poorly fitted saddle can cause back problems, behavioral issues, and long-term injury for both horse and rider.</p>
 
@@ -210,7 +210,7 @@ function getBlogPosts() {
     },
     {
       // Western vs. English Saddles
-      cover_image: "https://saddleonlineshop.com/cdn/shop/products/9075PonySS_2.jpg?v=1640371922",
+      // cover_image removed
       title: "Western vs. English Saddles: Which is Right for You?",
       slug: "western-vs-english-saddles-which-is-right-for-you",
       excerpt:
@@ -304,7 +304,7 @@ function getBlogPosts() {
     },
     {
       // How to Properly Fit a Saddle to Your Horse
-      cover_image: "https://i.ebayimg.com/images/g/C7AAAOSwgjxlAEVo/s-l400.jpg",
+      // cover_image removed
       title: "How to Properly Fit a Saddle to Your Horse",
       slug: "how-to-properly-fit-saddle-horse",
       excerpt:
@@ -389,7 +389,7 @@ function getBlogPosts() {
     },
     {
       // The Art of Saddle Leather: Quality, Care and Longevity
-      cover_image: "https://batessaddles.eu/cdn/shop/files/900f5e982bd95b47f29f9206e397d759.png?v=1729221812",
+      // cover_image removed
       title: "The Art of Saddle Leather: Quality, Care and Longevity",
       slug: "art-of-saddle-leather-quality-care-longevity",
       excerpt:
@@ -491,7 +491,7 @@ function getBlogPosts() {
     },
     {
       // Understanding Saddle Gullet Width and Why It Matters
-      cover_image: "https://oursaddlery.com/wp-content/uploads/2021/05/Jumping_Saddle_Prestige_Paris_Classic_Black_1.jpg",
+      // cover_image removed
       title: "Understanding Saddle Gullet Width and Why It Matters",
       slug: "understanding-saddle-gullet-width",
       excerpt:
@@ -594,7 +594,7 @@ function getBlogPosts() {
     },
     {
       // Dressage Saddles: A Complete Buyer's Guide
-      cover_image: "https://farmandranchdepot.com/images/product/KS-Braden-Trail-Saddle-KS2634.jpeg",
+      // cover_image removed
       title: "Dressage Saddles: A Complete Buyer's Guide",
       slug: "dressage-saddles-complete-buyers-guide",
       excerpt:
@@ -680,7 +680,7 @@ function getBlogPosts() {
     },
     {
       // Show Jumping Saddles: What Every Jumper Needs to Know
-      cover_image: "https://www.chicksaddlery.com/Merchant2/graphics/00000001/WT5394_271x380_2.jpg",
+      // cover_image removed
       title: "Show Jumping Saddles: What Every Jumper Needs to Know",
       slug: "show-jumping-saddles-what-every-jumper-needs-to-know",
       excerpt:
@@ -736,7 +736,7 @@ function getBlogPosts() {
     },
     {
       // Trail Riding Saddles: Comfort for the Long Ride
-      cover_image: "https://batessaddles.eu/cdn/shop/files/900f5e982bd95b47f29f9206e397d759.png?v=1729221812",
+      // cover_image removed
       title: "Trail Riding Saddles: Comfort for the Long Ride",
       slug: "trail-riding-saddles-comfort-long-ride",
       excerpt:
@@ -805,7 +805,7 @@ function getBlogPosts() {
     },
     {
       // The History of Horse Saddles: From Ancient Times to Modern Design
-      cover_image: "https://saddleonlineshop.com/cdn/shop/products/9075PonySS_2.jpg?v=1640371922",
+      // cover_image removed
       title:
         "The History of Horse Saddles: From Ancient Times to Modern Design",
       slug: "history-of-horse-saddles-ancient-times-to-modern",
@@ -867,7 +867,7 @@ function getBlogPosts() {
     },
     {
       // How to Break In a New Leather Saddle
-      cover_image: "https://i.ebayimg.com/images/g/C7AAAOSwgjxlAEVo/s-l400.jpg",
+      // cover_image removed
       title: "How to Break In a New Leather Saddle",
       slug: "how-to-break-in-new-leather-saddle",
       excerpt:
@@ -944,7 +944,7 @@ function getBlogPosts() {
     },
     {
       // Barrel Racing Saddles: Speed, Security, and Performance
-      cover_image: "https://media.istockphoto.com/id/2163238499/photo/brown-leather-saddle-hanging-on-wooden-wall-at-stable-or-barn-professional-equestrian-horse.jpg?s=612x612&w=0&k=20&c=ASLzmKjV2AzNgYVwyjRMqSnsPLDDxnMOK7oU0TYGQkQ=",
+      // cover_image removed
       title: "Barrel Racing Saddles: Speed, Security, and Performance",
       slug: "barrel-racing-saddles-speed-security-performance",
       excerpt:
@@ -1005,7 +1005,7 @@ function getBlogPosts() {
     },
     {
       // Horse Saddle Care in Winter: Essential Seasonal Tips
-      cover_image: "https://farmandranchdepot.com/images/product/KS-Braden-Trail-Saddle-KS2634.jpeg",
+      // cover_image removed
       title: "Horse Saddle Care in Winter: Essential Seasonal Tips",
       slug: "horse-saddle-care-winter-essential-seasonal-tips",
       excerpt:
