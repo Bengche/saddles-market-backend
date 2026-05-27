@@ -17,7 +17,7 @@ router.get("/", async (req, res, next) => {
 
     params.push(Number(limit), offset);
     const dataQuery = `
-      SELECT bp.id, bp.title, bp.slug, bp.excerpt, bp.cover_image, bp.category, bp.read_time, bp.published_at
+      SELECT bp.id, bp.title, bp.slug, bp.excerpt, bp.cover_image, bp.category, bp.reading_time, bp.published_at
       FROM blog_posts bp
       ${where}
       ORDER BY bp.published_at DESC
@@ -67,7 +67,7 @@ router.get("/:slug", async (req, res, next) => {
 
     // Fetch related posts (same category, excluding self)
     const related = await pool.query(
-      `SELECT id, title, slug, excerpt, cover_image, category, read_time, published_at
+      `SELECT id, title, slug, excerpt, cover_image, category, reading_time, published_at
        FROM blog_posts
        WHERE category = $1 AND slug != $2 AND is_published = TRUE
        ORDER BY published_at DESC LIMIT 3`,
