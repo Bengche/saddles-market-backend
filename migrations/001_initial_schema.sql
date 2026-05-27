@@ -10,15 +10,40 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ─── ENUMS ────────────────────────────────────────────────────────────────────
 
+
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
     DROP TYPE user_role CASCADE;
   END IF;
 END $$;
 CREATE TYPE user_role AS ENUM ('customer', 'admin');
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'order_status') THEN
+    DROP TYPE order_status CASCADE;
+  END IF;
+END $$;
 CREATE TYPE order_status AS ENUM ('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'rejected', 'refund_requested', 'refunded');
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_status') THEN
+    DROP TYPE payment_status CASCADE;
+  END IF;
+END $$;
 CREATE TYPE payment_status AS ENUM ('pending', 'paid', 'failed', 'refunded');
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'saddle_discipline') THEN
+    DROP TYPE saddle_discipline CASCADE;
+  END IF;
+END $$;
 CREATE TYPE saddle_discipline AS ENUM ('western', 'english', 'dressage', 'jumping', 'trail', 'barrel_racing', 'cutting', 'endurance', 'all_purpose', 'other');
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'saddle_condition') THEN
+    DROP TYPE saddle_condition CASCADE;
+  END IF;
+END $$;
 CREATE TYPE saddle_condition AS ENUM ('new', 'like_new', 'excellent', 'good', 'fair');
 
 -- ─── USERS ────────────────────────────────────────────────────────────────────
