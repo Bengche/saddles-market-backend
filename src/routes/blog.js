@@ -63,7 +63,11 @@ router.get("/:slug", async (req, res, next) => {
         .json({ success: false, message: "Post not found." });
     }
 
-    const post = result.rows[0];
+    // Map 'content' to 'body' for frontend compatibility
+    const post = {
+      ...result.rows[0],
+      body: result.rows[0].content,
+    };
 
     // Fetch related posts (same category, excluding self)
     const related = await pool.query(
