@@ -30,12 +30,10 @@ const placeOrder = async (req, res, next) => {
     } = req.body;
 
     if (!items || items.length === 0) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Order must contain at least one item.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Order must contain at least one item.",
+      });
     }
 
     // Calculate order totals
@@ -51,12 +49,10 @@ const placeOrder = async (req, res, next) => {
 
       if (product.rows.length === 0) {
         await client.query("ROLLBACK");
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: `Product not found: ${item.productId}`,
-          });
+        return res.status(400).json({
+          success: false,
+          message: `Product not found: ${item.productId}`,
+        });
       }
 
       const p = product.rows[0];

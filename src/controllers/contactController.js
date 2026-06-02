@@ -18,7 +18,11 @@ const sendContactMessage = async (req, res, next) => {
     await sendEmail({ to: email, ...ackEmail });
 
     // Notify support team
-    const escHtml = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const escHtml = (s) =>
+      String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
     await sendEmail({
       to: SITE_CONFIG.contact.supportEmail,
       subject: `New Contact Message: ${subject}`,
