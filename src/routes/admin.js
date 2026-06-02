@@ -26,6 +26,7 @@ const {
   patchContactMessage,
   deleteContactMessage,
 } = require("../controllers/adminController");
+const { createProduct } = require("../controllers/productController");
 const {
   adminGetOrders,
   adminUpdateOrderStatus,
@@ -43,6 +44,7 @@ router.patch("/users/:id", adminOnly, adminPatchUser);
 
 // Products
 router.get("/products", adminOnly, adminGetProducts);
+router.post("/products", adminOnly, createProduct);
 router.patch("/products/:id", adminOnly, adminPatchProduct);
 router.delete("/products/:id", adminOnly, adminDeleteProduct);
 
