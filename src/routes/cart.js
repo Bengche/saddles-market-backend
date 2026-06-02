@@ -7,6 +7,7 @@ const {
   removeFromCart,
   clearCart,
   mergeCart,
+  applyCoupon,
 } = require("../controllers/cartController");
 const { optionalAuth, protect } = require("../middleware/auth");
 
@@ -17,5 +18,6 @@ router.put("/item/:id", optionalAuth, updateCartItem);
 router.delete("/item/:id", optionalAuth, removeFromCart);
 router.delete("/clear", optionalAuth, clearCart);
 router.post("/merge", protect, mergeCart);
+router.post("/apply-coupon", optionalAuth, applyCoupon);
 
 module.exports = router;

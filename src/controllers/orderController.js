@@ -108,10 +108,24 @@ const placeOrder = async (req, res, next) => {
         } else {
           discountAmount = parseFloat(c.discount_value);
         }
-        await client.query(
-          "UPDATE coupons SET times_used = times_used + 1 WHERE id = $1",
+
+        // Guard against concurrent overuse by incrementing only when still under limit.
+        const couponUpdate = await client.query(
+          `UPDATE coupons
+           SET times_used = times_used + 1
+           WHERE id = $1
+             AND (usage_limit IS NULL OR times_used < usage_limit)
+           RETURNING id`,
           [c.id],
         );
+
+        if (couponUpdate.rows.length === 0) {
+          await client.query("ROLLBACK");
+          return res.status(400).json({
+            success: false,
+            message: "Coupon usage limit has been reached.",
+          });
+        }
       }
     }
 

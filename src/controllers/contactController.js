@@ -18,17 +18,18 @@ const sendContactMessage = async (req, res, next) => {
     await sendEmail({ to: email, ...ackEmail });
 
     // Notify support team
+    const escHtml = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     await sendEmail({
       to: SITE_CONFIG.contact.supportEmail,
       subject: `New Contact Message: ${subject}`,
       html: `<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;padding:24px;">
         <h2 style="color:#1C3557;">New Contact Message</h2>
-        <p><strong>From:</strong> ${name} (${email})</p>
-        ${phone ? `<p><strong>Phone:</strong> ${phone}</p>` : ""}
-        <p><strong>Subject:</strong> ${subject}</p>
+        <p><strong>From:</strong> ${escHtml(name)} (${escHtml(email)})</p>
+        ${phone ? `<p><strong>Phone:</strong> ${escHtml(phone)}</p>` : ""}
+        <p><strong>Subject:</strong> ${escHtml(subject)}</p>
         <p><strong>Message:</strong></p>
-        <div style="background:#F5EFE6;padding:16px;border-left:3px solid #C4A862;">${message.replace(/\n/g, "<br/>")}</div>
-        <p style="margin-top:16px;"><a href="mailto:${email}" style="background:#1C3557;color:#fff;padding:10px 20px;text-decoration:none;">Reply to ${name}</a></p>
+        <div style="background:#F5EFE6;padding:16px;border-left:3px solid #C4A862;">${escHtml(message).replace(/\n/g, "<br/>")}</div>
+        <p style="margin-top:16px;"><a href="mailto:${escHtml(email)}" style="background:#1C3557;color:#fff;padding:10px 20px;text-decoration:none;">Reply to ${escHtml(name)}</a></p>
       </div>`,
     });
 

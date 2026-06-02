@@ -223,6 +223,38 @@ const mergeCart = async (req, res, next) => {
   }
 };
 
+// ─── Apply Coupon ──────────────────────────────────────────────────────────────
+const applyCoupon = async (req, res, next) => {
+  try {
+    const { code, subtotal } = req.body;
+    if (!code || !subtotal) {
+      return res.status(400).json({ success: false, message: "Code and subtotal are required." });
+    }
+    const result = await pool.query(
+      `SELECT * FROM coupons
+       WHERE UPPER(code) = UPPER($1) AND is_active = TRUE
+         AND (valid_until IS NULL OR valid_until > NOW())
+         AND (usage_limit IS NULL OR times_used < usage_limit)
+         AND minimum_order <= $2`,
+      [code, subtotal],
+    );
+    if (result.rows.length === 0) {
+      return res.status(400).json({ success: false, message: "Invalid or expired coupon code." });
+    }
+    const c = result.rows[0];
+    let discount = 0;
+    if (c.discount_type === "percentage") {
+      discount = (parseFloat(subtotal) * parseFloat(c.discount_value)) / 100;
+      if (c.maximum_discount) discount = Math.min(discount, parseFloat(c.maximum_discount));
+    } else {
+      discount = parseFloat(c.discount_value);
+    }
+    res.json({ success: true, discount, couponId: c.id, message: "Coupon applied!" });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getCart,
   addToCart,
@@ -230,4 +262,5 @@ module.exports = {
   removeFromCart,
   clearCart,
   mergeCart,
+  applyCoupon,
 };

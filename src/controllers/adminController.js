@@ -1,5 +1,8 @@
 const pool = require("../config/database");
 
+const asInt = (rows, key = "count") => parseInt(rows?.[0]?.[key] ?? 0, 10);
+const asFloat = (rows, key = "total") => parseFloat(rows?.[0]?.[key] ?? 0);
+
 const getAdminDashboard = async (req, res, next) => {
   try {
     const [orders, revenue, users, products, pendingOrders, messages] =
@@ -33,12 +36,12 @@ const getAdminDashboard = async (req, res, next) => {
       success: true,
       data: {
         stats: {
-          totalOrders: parseInt(orders.rows[0].count),
-          totalRevenue: parseFloat(revenue.rows[0].total),
-          totalCustomers: parseInt(users.rows[0].count),
-          totalProducts: parseInt(products.rows[0].count),
-          pendingOrders: parseInt(pendingOrders.rows[0].count),
-          unreadMessages: parseInt(messages.rows[0].count),
+          totalOrders: asInt(orders.rows),
+          totalRevenue: asFloat(revenue.rows),
+          totalCustomers: asInt(users.rows),
+          totalProducts: asInt(products.rows),
+          pendingOrders: asInt(pendingOrders.rows),
+          unreadMessages: asInt(messages.rows),
         },
         recentOrders: recentOrders.rows,
         revenueByMonth: revenueByMonth.rows,
@@ -657,13 +660,13 @@ const getAdminStats = async (req, res, next) => {
     );
     res.json({
       success: true,
-      totalOrders: parseInt(orders.rows[0].count),
-      totalRevenue: parseFloat(revenue.rows[0].total),
-      totalCustomers: parseInt(users.rows[0].count),
-      totalProducts: parseInt(products.rows[0].count),
-      pendingOrders: parseInt(pendingOrders.rows[0].count),
-      unreadMessages: parseInt(messages.rows[0].count),
-      newsletterSubscribers: parseInt(newsletter.rows[0].count),
+      totalOrders: asInt(orders.rows),
+      totalRevenue: asFloat(revenue.rows),
+      totalCustomers: asInt(users.rows),
+      totalProducts: asInt(products.rows),
+      pendingOrders: asInt(pendingOrders.rows),
+      unreadMessages: asInt(messages.rows),
+      newsletterSubscribers: asInt(newsletter.rows),
       recentOrders: recentOrders.rows,
     });
   } catch (err) {
