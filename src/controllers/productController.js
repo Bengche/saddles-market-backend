@@ -234,6 +234,9 @@ const createProduct = async (req, res, next) => {
       metaKeywords,
       tags,
       images,
+      availableSeatSizes,
+      availableColors,
+      availableTreeSizes,
     } = req.body;
 
     let slug = slugify(name, { lower: true, strict: true });
@@ -253,10 +256,11 @@ const createProduct = async (req, res, next) => {
          weight_lbs, seat_size, gullet_width, tree_type, leather_type, leather_origin,
          horn_height, cantle_height, rigging, fender_type, stirrup_type, color,
          warranty, brand, country_of_origin, condition, is_featured, is_trial_eligible,
-         meta_title, meta_description, meta_keywords, tags)
+         meta_title, meta_description, meta_keywords, tags,
+         available_seat_sizes, available_colors, available_tree_sizes)
        VALUES
         ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
-         $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33)
+         $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36)
        RETURNING *`,
       [
         name,
@@ -292,6 +296,9 @@ const createProduct = async (req, res, next) => {
         metaDescription || shortDescription,
         metaKeywords || null,
         tags || null,
+        availableSeatSizes || [],
+        availableColors || [],
+        availableTreeSizes || [],
       ],
     );
 
@@ -362,6 +369,9 @@ const updateProduct = async (req, res, next) => {
       "meta_description",
       "meta_keywords",
       "tags",
+      "available_seat_sizes",
+      "available_colors",
+      "available_tree_sizes",
     ];
 
     const updates = [];

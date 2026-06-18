@@ -65,7 +65,10 @@ const placeOrder = async (req, res, next) => {
         productName: p.name,
         productSku: p.sku,
         productImage: p.primary_image,
-        seatSize: item.seatSize || p.seat_size,
+        seatSize: item.selectedSeatSize || item.seatSize || p.seat_size,
+        selectedColor: item.selectedColor || null,
+        selectedTreeSize: item.selectedTreeSize || null,
+        selectedWidth: item.selectedWidth || null,
         price: p.price,
         quantity,
         total: itemTotal,
@@ -193,8 +196,11 @@ const placeOrder = async (req, res, next) => {
     // Insert order items
     for (const item of orderItems) {
       await client.query(
-        `INSERT INTO order_items (order_id, product_id, product_name, product_sku, product_image, seat_size, price, quantity, total)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        `INSERT INTO order_items
+          (order_id, product_id, product_name, product_sku, product_image,
+           seat_size, selected_color, selected_tree_size, selected_width,
+           price, quantity, total)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
         [
           order.id,
           item.productId,
@@ -202,6 +208,9 @@ const placeOrder = async (req, res, next) => {
           item.productSku,
           item.productImage,
           item.seatSize,
+          item.selectedColor,
+          item.selectedTreeSize,
+          item.selectedWidth,
           item.price,
           item.quantity,
           item.total,
@@ -235,6 +244,9 @@ const placeOrder = async (req, res, next) => {
         price: i.price,
         total: i.total,
         seat_size: i.seatSize,
+        selected_color: i.selectedColor,
+        selected_tree_size: i.selectedTreeSize,
+        selected_width: i.selectedWidth,
       })),
     });
 
@@ -249,6 +261,9 @@ const placeOrder = async (req, res, next) => {
         quantity: i.quantity,
         total: i.total,
         seat_size: i.seatSize,
+        selected_color: i.selectedColor,
+        selected_tree_size: i.selectedTreeSize,
+        selected_width: i.selectedWidth,
       })),
       customerEmail,
     });
@@ -287,7 +302,8 @@ const getUserOrders = async (req, res, next) => {
               json_agg(json_build_object(
                 'id', oi.id, 'productName', oi.product_name, 'quantity', oi.quantity,
                 'price', oi.price, 'total', oi.total, 'productImage', oi.product_image,
-                'seatSize', oi.seat_size
+                'seatSize', oi.seat_size, 'selectedColor', oi.selected_color,
+                'selectedTreeSize', oi.selected_tree_size, 'selectedWidth', oi.selected_width
               )) AS items
        FROM orders o
        LEFT JOIN order_items oi ON oi.order_id = o.id

@@ -10,6 +10,8 @@ const getCart = async (req, res, next) => {
     if (userId) {
       query = `SELECT ci.*, p.name, p.price, p.compare_price, p.stock_quantity,
                       p.seat_size, p.brand, p.slug, p.is_active,
+                      ci.selected_seat_size, ci.selected_color,
+                      ci.selected_tree_size, ci.selected_width,
                       (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = TRUE LIMIT 1) AS image
                FROM cart_items ci
                JOIN products p ON p.id = ci.product_id
@@ -18,6 +20,8 @@ const getCart = async (req, res, next) => {
     } else if (sessionId) {
       query = `SELECT ci.*, p.name, p.price, p.compare_price, p.stock_quantity,
                       p.seat_size, p.brand, p.slug, p.is_active,
+                      ci.selected_seat_size, ci.selected_color,
+                      ci.selected_tree_size, ci.selected_width,
                       (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = TRUE LIMIT 1) AS image
                FROM cart_items ci
                JOIN products p ON p.id = ci.product_id
@@ -45,7 +49,14 @@ const getCart = async (req, res, next) => {
 // ─── Add to Cart ───────────────────────────────────────────────────────────────
 const addToCart = async (req, res, next) => {
   try {
-    const { productId, quantity = 1 } = req.body;
+    const {
+      productId,
+      quantity = 1,
+      selectedSeatSize,
+      selectedColor,
+      selectedTreeSize,
+      selectedWidth,
+    } = req.body;
     const userId = req.user?.id;
     const sessionId = req.headers["x-session-id"];
 
@@ -82,20 +93,50 @@ const addToCart = async (req, res, next) => {
         existing.rows[0].quantity + parseInt(quantity),
         10,
       );
-      await pool.query("UPDATE cart_items SET quantity = $1 WHERE id = $2", [
-        newQty,
-        existing.rows[0].id,
-      ]);
+      await pool.query(
+        `UPDATE cart_items SET quantity = $1,
+          selected_seat_size = $3, selected_color = $4,
+          selected_tree_size = $5, selected_width = $6
+         WHERE id = $2`,
+        [
+          newQty,
+          existing.rows[0].id,
+          selectedSeatSize || null,
+          selectedColor || null,
+          selectedTreeSize || null,
+          selectedWidth || null,
+        ],
+      );
     } else {
       if (userId) {
         await pool.query(
-          "INSERT INTO cart_items (user_id, product_id, quantity) VALUES ($1, $2, $3)",
-          [userId, productId, parseInt(quantity)],
+          `INSERT INTO cart_items
+            (user_id, product_id, quantity, selected_seat_size, selected_color, selected_tree_size, selected_width)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            userId,
+            productId,
+            parseInt(quantity),
+            selectedSeatSize || null,
+            selectedColor || null,
+            selectedTreeSize || null,
+            selectedWidth || null,
+          ],
         );
       } else {
         await pool.query(
-          "INSERT INTO cart_items (session_id, product_id, quantity) VALUES ($1, $2, $3)",
-          [sessionId, productId, parseInt(quantity)],
+          `INSERT INTO cart_items
+            (session_id, product_id, quantity, selected_seat_size, selected_color, selected_tree_size, selected_width)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            sessionId,
+            productId,
+            parseInt(quantity),
+            selectedSeatSize || null,
+            selectedColor || null,
+            selectedTreeSize || null,
+            selectedWidth || null,
+          ],
         );
       }
     }
