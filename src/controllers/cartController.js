@@ -33,14 +33,36 @@ const getCart = async (req, res, next) => {
     }
 
     const result = await pool.query(query, params);
-    const items = result.rows;
+
+    const items = result.rows.map((row) => ({
+      id: row.id,
+      product_id: row.product_id,
+      quantity: row.quantity,
+      selected_seat_size: row.selected_seat_size,
+      selected_color: row.selected_color,
+      selected_tree_size: row.selected_tree_size,
+      selected_width: row.selected_width,
+      product: {
+        id: row.product_id,
+        name: row.name,
+        slug: row.slug,
+        price: parseFloat(row.price),
+        compare_price: row.compare_price
+          ? parseFloat(row.compare_price)
+          : null,
+        stock_quantity: row.stock_quantity,
+        primary_image: row.image || null,
+        images: [],
+      },
+    }));
 
     const subtotal = items.reduce(
-      (sum, item) => sum + parseFloat(item.price) * item.quantity,
+      (sum, item) => sum + item.product.price * item.quantity,
       0,
     );
+    const item_count = items.reduce((sum, item) => sum + item.quantity, 0);
 
-    res.json({ success: true, data: { items, subtotal } });
+    res.json({ success: true, data: { items, subtotal, item_count } });
   } catch (err) {
     next(err);
   }

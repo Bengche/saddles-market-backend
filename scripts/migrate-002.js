@@ -29,9 +29,15 @@ async function run() {
     console.log("Applying migration 002_product_variants.sql ...");
     await client.query(sql);
     console.log("Done. Columns added:");
-    console.log("  products: available_seat_sizes, available_colors, available_tree_sizes");
-    console.log("  cart_items: selected_seat_size, selected_color, selected_tree_size, selected_width");
-    console.log("  order_items: selected_color, selected_tree_size, selected_width");
+    console.log(
+      "  products: available_seat_sizes, available_colors, available_tree_sizes",
+    );
+    console.log(
+      "  cart_items: selected_seat_size, selected_color, selected_tree_size, selected_width",
+    );
+    console.log(
+      "  order_items: selected_color, selected_tree_size, selected_width",
+    );
   } catch (err) {
     console.error("Migration failed:", err.message);
     process.exit(1);

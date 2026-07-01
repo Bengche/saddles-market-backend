@@ -130,7 +130,10 @@ runMigrations()
     });
   })
   .catch((err) => {
-    console.error("Failed to run migrations — server will not start:", err.message);
+    console.error(
+      "Failed to run migrations — server will not start:",
+      err.message,
+    );
     process.exit(1);
   });
 

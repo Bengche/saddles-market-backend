@@ -236,7 +236,9 @@ const resendOTP = async (req, res, next) => {
         [email.toLowerCase()],
       );
     } else {
-      return res.status(400).json({ success: false, message: "Email or userId required." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Email or userId required." });
     }
 
     if (userResult.rows.length === 0) {
@@ -351,11 +353,12 @@ const login = async (req, res, next) => {
         token,
         user: {
           id: user.id,
-          firstName: user.first_name,
-          lastName: user.last_name,
+          first_name: user.first_name,
+          last_name: user.last_name,
           email: user.email,
           role: user.role,
-          avatarUrl: user.avatar_url,
+          avatar_url: user.avatar_url,
+          email_verified: user.is_email_verified,
         },
       },
     });
@@ -393,16 +396,25 @@ const getMe = async (req, res, next) => {
       data: {
         user: {
           id: user.id,
-          firstName: user.first_name,
-          lastName: user.last_name,
+          first_name: user.first_name,
+          last_name: user.last_name,
           email: user.email,
           role: user.role,
           phone: user.phone,
-          avatarUrl: user.avatar_url,
-          isEmailVerified: user.is_email_verified,
-          newsletterOptedIn: user.newsletter_opted_in,
-          createdAt: user.created_at,
-          addresses: addresses.rows,
+          avatar_url: user.avatar_url,
+          email_verified: user.is_email_verified,
+          newsletter_subscribed: user.newsletter_opted_in,
+          created_at: user.created_at,
+          addresses: addresses.rows.map((a) => ({
+            id: a.id,
+            label: a.label,
+            street: a.street_line1,
+            city: a.city,
+            state: a.state,
+            zip_code: a.zip,
+            country: a.country,
+            is_default: a.is_default,
+          })),
         },
       },
     });
@@ -414,7 +426,9 @@ const getMe = async (req, res, next) => {
 // ─── Update Profile ────────────────────────────────────────────────────────────
 const updateProfile = async (req, res, next) => {
   try {
-    const { firstName, lastName, phone } = req.body;
+    const firstName = req.body.firstName || req.body.first_name;
+    const lastName = req.body.lastName || req.body.last_name;
+    const { phone } = req.body;
 
     await pool.query(
       "UPDATE users SET first_name = $1, last_name = $2, phone = $3 WHERE id = $4",
@@ -559,17 +573,25 @@ const addAddress = async (req, res, next) => {
       firstName,
       lastName,
       company,
+      // Accept both naming conventions
       streetLine1,
+      street,
       streetLine2,
       city,
       state,
       zip,
+      zip_code,
       country,
       phone,
       isDefault,
+      is_default,
     } = req.body;
 
-    if (isDefault) {
+    const resolvedStreet = streetLine1 || street;
+    const resolvedZip = zip || zip_code;
+    const resolvedDefault = isDefault || is_default || false;
+
+    if (resolvedDefault) {
       await pool.query(
         "UPDATE user_addresses SET is_default = FALSE WHERE user_id = $1",
         [req.user.id],
@@ -582,21 +604,99 @@ const addAddress = async (req, res, next) => {
       [
         req.user.id,
         label || "Home",
-        firstName,
-        lastName,
-        company,
-        streetLine1,
-        streetLine2,
+        firstName || null,
+        lastName || null,
+        company || null,
+        resolvedStreet,
+        streetLine2 || null,
         city,
         state,
-        zip,
+        resolvedZip,
         country || "United States",
-        phone,
-        isDefault || false,
+        phone || null,
+        resolvedDefault,
       ],
     );
 
     res.status(201).json({ success: true, data: { address: result.rows[0] } });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getAddresses = async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      "SELECT * FROM user_addresses WHERE user_id = $1 ORDER BY is_default DESC, created_at DESC",
+      [req.user.id],
+    );
+    const addresses = result.rows.map((a) => ({
+      id: a.id,
+      label: a.label,
+      street: a.street_line1,
+      city: a.city,
+      state: a.state,
+      zip_code: a.zip,
+      country: a.country,
+      is_default: a.is_default,
+    }));
+    res.json({ success: true, addresses });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateAddress = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const {
+      label,
+      streetLine1,
+      street,
+      city,
+      state,
+      zip,
+      zip_code,
+      country,
+      is_default,
+      isDefault,
+    } = req.body;
+
+    const resolvedStreet = streetLine1 || street;
+    const resolvedZip = zip || zip_code;
+    const resolvedDefault = isDefault || is_default || false;
+
+    if (resolvedDefault) {
+      await pool.query(
+        "UPDATE user_addresses SET is_default = FALSE WHERE user_id = $1",
+        [req.user.id],
+      );
+    }
+
+    await pool.query(
+      `UPDATE user_addresses
+       SET label = COALESCE($1, label),
+           street_line1 = COALESCE($2, street_line1),
+           city = COALESCE($3, city),
+           state = COALESCE($4, state),
+           zip = COALESCE($5, zip),
+           country = COALESCE($6, country),
+           is_default = $7
+       WHERE id = $8 AND user_id = $9`,
+      [
+        label || null,
+        resolvedStreet || null,
+        city || null,
+        state || null,
+        resolvedZip || null,
+        country || null,
+        resolvedDefault,
+        id,
+        req.user.id,
+      ],
+    );
+
+    res.json({ success: true, message: "Address updated." });
   } catch (err) {
     next(err);
   }
@@ -627,5 +727,7 @@ module.exports = {
   forgotPassword,
   resetPassword,
   addAddress,
+  getAddresses,
+  updateAddress,
   deleteAddress,
 };

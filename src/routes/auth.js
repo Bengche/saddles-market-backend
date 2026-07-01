@@ -13,6 +13,8 @@ const {
   forgotPassword,
   resetPassword,
   addAddress,
+  getAddresses,
+  updateAddress,
   deleteAddress,
 } = require("../controllers/authController");
 const { protect } = require("../middleware/auth");
@@ -74,7 +76,9 @@ router.post(
   resetPassword,
 );
 
+router.get("/addresses", protect, getAddresses);
 router.post("/addresses", protect, addAddress);
+router.put("/addresses/:id", protect, updateAddress);
 router.delete("/addresses/:id", protect, deleteAddress);
 
 module.exports = router;

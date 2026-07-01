@@ -55,10 +55,7 @@ async function runMigrations() {
       }
 
       console.log(`  [migrations] apply ${filename} ...`);
-      const sql = fs.readFileSync(
-        path.join(MIGRATIONS_DIR, filename),
-        "utf8",
-      );
+      const sql = fs.readFileSync(path.join(MIGRATIONS_DIR, filename), "utf8");
 
       await client.query("BEGIN");
       try {
