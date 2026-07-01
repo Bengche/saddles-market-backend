@@ -334,23 +334,33 @@ const manageCoupons = async (req, res, next) => {
 
 const createCoupon = async (req, res, next) => {
   try {
-    const {
-      code,
-      description,
-      discountType,
-      discountValue,
-      minimumOrder,
-      maximumDiscount,
-      usageLimit,
-      validUntil,
-    } = req.body;
+    // Accept both camelCase and snake_case field names
+    const code = req.body.code;
+    const description = req.body.description;
+    const discountType = req.body.discountType || req.body.discount_type;
+    const discountValue = req.body.discountValue ?? req.body.discount_value;
+    const minimumOrder =
+      req.body.minimumOrder ?? req.body.minimum_order ?? req.body.min_order_amount ?? 0;
+    const maximumDiscount =
+      req.body.maximumDiscount ?? req.body.maximum_discount ?? null;
+    const usageLimit =
+      req.body.usageLimit ?? req.body.usage_limit ?? null;
+    const validUntil =
+      req.body.validUntil || req.body.valid_until || req.body.expires_at || null;
+
+    if (!code || !discountType || discountValue === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Code, discount type, and discount value are required.",
+      });
+    }
 
     const result = await pool.query(
       `INSERT INTO coupons (code, description, discount_type, discount_value, minimum_order, maximum_discount, usage_limit, valid_until)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
       [
         code.toUpperCase(),
-        description,
+        description || null,
         discountType,
         discountValue,
         minimumOrder || 0,
@@ -698,15 +708,52 @@ const broadcastNewsletter = async (req, res, next) => {
       return res
         .status(400)
         .json({ success: false, message: "Subject and content are required." });
-    // Store campaign record
+
+    // Get all active subscribers
+    const subscribers = await pool.query(
+      "SELECT email, first_name, token FROM newsletter_subscribers WHERE is_active = TRUE",
+    );
+
+    if (subscribers.rows.length === 0) {
+      return res.json({
+        success: true,
+        message: "No active subscribers found.",
+        sentTo: 0,
+      });
+    }
+
+    // Record the campaign
     await pool
       .query(
-        `INSERT INTO newsletter_campaigns (subject, content, sent_by, sent_at, status)
-       VALUES ($1, $2, $3, NOW(), 'sent')`,
-        [subject, content, req.user.id],
+        `INSERT INTO newsletter_campaigns (subject, html_content, sent_to_count, sent_at)
+         VALUES ($1, $2, $3, NOW())`,
+        [subject, content, subscribers.rows.length],
       )
-      .catch(() => {}); // ignore if table doesn't exist exactly
-    res.json({ success: true, message: "Newsletter broadcast queued." });
+      .catch(() => {}); // non-fatal — table columns may vary
+
+    // Import email utilities inline to avoid circular deps
+    const { sendEmail } = require("../utils/emailService");
+    const { newsletterBroadcastTemplate } = require("../utils/emailTemplates");
+    const SITE_CONFIG = require("../config/siteConfig");
+
+    let sentCount = 0;
+    for (const sub of subscribers.rows) {
+      const unsubscribeLink = `${process.env.FRONTEND_URL}/newsletter/unsubscribe?token=${sub.token}`;
+      const personalised = content.replace(/{{first_name}}/g, sub.first_name || "Equestrian");
+      const emailData = newsletterBroadcastTemplate({
+        subject,
+        htmlContent: personalised,
+        unsubscribeLink,
+      });
+      const result = await sendEmail({ to: sub.email, ...emailData });
+      if (result?.success) sentCount++;
+    }
+
+    res.json({
+      success: true,
+      message: `Broadcast sent to ${sentCount} subscriber${sentCount !== 1 ? "s" : ""}.`,
+      sentTo: sentCount,
+    });
   } catch (err) {
     next(err);
   }
@@ -767,7 +814,7 @@ const getAdminStats = async (req, res, next) => {
     ] = await Promise.all([
       pool.query("SELECT COUNT(*) FROM orders"),
       pool.query(
-        "SELECT COALESCE(SUM(total_amount), 0) AS total FROM orders WHERE payment_status = 'paid'",
+        "SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE payment_status = 'paid'",
       ),
       pool.query("SELECT COUNT(*) FROM users WHERE role = $1", ["customer"]),
       pool.query("SELECT COUNT(*) FROM products WHERE is_active = TRUE"),
@@ -778,10 +825,10 @@ const getAdminStats = async (req, res, next) => {
       ),
     ]);
     const recentOrders = await pool.query(
-      `SELECT o.id, o.created_at, o.total_amount, o.status,
-              COALESCE(u.first_name, o.shipping_first_name) AS first_name,
-              COALESCE(u.last_name, o.shipping_last_name) AS last_name,
-              COALESCE(u.email, o.shipping_email) AS email
+      `SELECT o.id, o.created_at, o.total, o.status,
+              COALESCE(u.first_name, o.ship_first_name) AS first_name,
+              COALESCE(u.last_name, o.ship_last_name) AS last_name,
+              COALESCE(u.email, o.guest_email) AS email
        FROM orders o LEFT JOIN users u ON u.id = o.user_id
        ORDER BY o.created_at DESC LIMIT 10`,
     );

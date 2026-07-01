@@ -186,7 +186,12 @@ const welcomeEmailTemplate = ({ firstName }) => ({
 });
 
 // ─── Order Confirmation (Customer) ────────────────────────────────────────────
-const orderConfirmationTemplate = ({ firstName, order, items, customerEmail }) => {
+const orderConfirmationTemplate = ({
+  firstName,
+  order,
+  items,
+  customerEmail,
+}) => {
   const itemsHtml = items
     .map(
       (item) => `
@@ -394,13 +399,17 @@ const orderStatusUpdateTemplate = ({
     },
     cancelled: {
       heading: "Order Cancelled",
-      body: message || "Your order has been cancelled. If you have any questions or would like to place a new order, please do not hesitate to contact us.",
+      body:
+        message ||
+        "Your order has been cancelled. If you have any questions or would like to place a new order, please do not hesitate to contact us.",
       badge: "status-cancelled",
       previewText: `Your order ${order.order_number} has been cancelled.`,
     },
     rejected: {
       heading: "Order Update",
-      body: message || "We were unable to process your order. Our team will be in touch to assist you. We apologise for the inconvenience.",
+      body:
+        message ||
+        "We were unable to process your order. Our team will be in touch to assist you. We apologise for the inconvenience.",
       badge: "status-cancelled",
       previewText: `An update on your order ${order.order_number}.`,
     },
