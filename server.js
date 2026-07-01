@@ -8,6 +8,7 @@ const rateLimit = require("express-rate-limit");
 const cron = require("node-cron");
 
 const SITE_CONFIG = require("./src/config/siteConfig");
+const runMigrations = require("./src/config/migrate");
 const { errorHandler, notFound } = require("./src/middleware/errorHandler");
 const { generalLimiter, authLimiter } = require("./src/middleware/rateLimiter");
 
@@ -112,18 +113,25 @@ app.use(notFound);
 app.use(errorHandler);
 
 // ─── Start server ─────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`\n────────────────────────────────────────────────────`);
-  console.log(`  ${SITE_CONFIG.name} API`);
-  console.log(`  Running on port ${PORT}`);
-  console.log(`  Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`────────────────────────────────────────────────────\n`);
+runMigrations()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`\n────────────────────────────────────────────────────`);
+      console.log(`  ${SITE_CONFIG.name} API`);
+      console.log(`  Running on port ${PORT}`);
+      console.log(`  Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log(`────────────────────────────────────────────────────\n`);
 
-  // Start background jobs
-  if (process.env.NODE_ENV === "production") {
-    startCartAbandonmentJob();
-    console.log("Cart abandonment job started.");
-  }
-});
+      // Start background jobs
+      if (process.env.NODE_ENV === "production") {
+        startCartAbandonmentJob();
+        console.log("Cart abandonment job started.");
+      }
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to run migrations — server will not start:", err.message);
+    process.exit(1);
+  });
 
 module.exports = app;
