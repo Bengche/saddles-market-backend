@@ -36,7 +36,7 @@ async function runCartAbandonmentJob() {
          JOIN users u ON u.id = ci.user_id
          WHERE ci.updated_at <= $1
            AND ci.updated_at >= $2
-           AND u.email_verified = TRUE
+           AND u.is_email_verified = TRUE
            AND NOT EXISTS (
              SELECT 1 FROM cart_abandonment_emails cae
              WHERE cae.user_id = u.id AND cae.email_number = $3
@@ -61,16 +61,21 @@ async function runCartAbandonmentJob() {
 
         if (!cartItems.rows.length) continue;
 
-        const htmlContent = cartAbandonmentTemplate({
+        const totalValue = cartItems.rows.reduce(
+          (sum, i) => sum + parseFloat(i.price) * i.quantity,
+          0,
+        );
+
+        const emailData = cartAbandonmentTemplate({
           firstName: row.first_name,
-          items: cartItems.rows,
+          cartItems: cartItems.rows,
           emailNumber: trigger.emailNumber,
+          totalValue,
         });
 
         const sent = await sendEmail({
           to: row.email,
-          subject: trigger.subject,
-          html: htmlContent,
+          ...emailData,
         });
 
         if (sent) {

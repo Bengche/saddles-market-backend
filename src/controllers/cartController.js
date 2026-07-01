@@ -47,9 +47,7 @@ const getCart = async (req, res, next) => {
         name: row.name,
         slug: row.slug,
         price: parseFloat(row.price),
-        compare_price: row.compare_price
-          ? parseFloat(row.compare_price)
-          : null,
+        compare_price: row.compare_price ? parseFloat(row.compare_price) : null,
         stock_quantity: row.stock_quantity,
         primary_image: row.image || null,
         images: [],

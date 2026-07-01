@@ -173,11 +173,15 @@ const placeOrder = async (req, res, next) => {
         billedSameAsShip,
         billedSameAsShip ? null : billingAddress?.firstName,
         billedSameAsShip ? null : billingAddress?.lastName,
-        billedSameAsShip ? null : (billingAddress?.streetLine1 || billingAddress?.street),
+        billedSameAsShip
+          ? null
+          : billingAddress?.streetLine1 || billingAddress?.street,
         billedSameAsShip ? null : billingAddress?.streetLine2,
         billedSameAsShip ? null : billingAddress?.city,
         billedSameAsShip ? null : billingAddress?.state,
-        billedSameAsShip ? null : (billingAddress?.zip || billingAddress?.zipCode),
+        billedSameAsShip
+          ? null
+          : billingAddress?.zip || billingAddress?.zipCode,
         billedSameAsShip ? null : billingAddress?.country,
         subtotal,
         shippingCost,
@@ -238,6 +242,7 @@ const placeOrder = async (req, res, next) => {
     const customerEmailData = orderConfirmationTemplate({
       firstName,
       order: { ...order, guest_email: customerEmail },
+      customerEmail,
       items: orderItems.map((i) => ({
         product_name: i.productName,
         quantity: i.quantity,
@@ -406,12 +411,25 @@ const requestRefund = async (req, res, next) => {
     );
 
     // Notify sales team
+    const { baseTemplate } = require("../utils/emailTemplates");
     await sendEmail({
       to: SITE_CONFIG.contact.salesEmail,
       subject: `Refund Requested — Order ${order.order_number}`,
-      html: `<p>A refund has been requested for order <strong>${order.order_number}</strong>.</p>
-             <p>Reason: ${reason || "No reason provided"}</p>
-             <p><a href="${process.env.FRONTEND_URL}/admin/orders/${order.id}">View Order</a></p>`,
+      html: baseTemplate(
+        `<p class="email-greeting">Refund Request Received</p>
+         <p class="email-text">A customer has requested a refund for an order within the 30-day trial period.</p>
+         <div class="email-info-box">
+           <p><strong>Order:</strong> ${order.order_number}<br/>
+           <strong>Customer:</strong> ${order.ship_first_name} ${order.ship_last_name}<br/>
+           <strong>Email:</strong> ${order.customer_email || ""}<br/>
+           <strong>Total:</strong> $${parseFloat(order.total).toFixed(2)}<br/>
+           <strong>Reason:</strong> ${reason || "No reason provided"}</p>
+         </div>
+         <div class="email-cta-wrapper">
+           <a href="${process.env.FRONTEND_URL}/admin/orders/${order.id}" class="email-cta">Review in Admin Panel</a>
+         </div>`,
+        `Refund request for order ${order.order_number}`,
+      ),
     });
 
     res.json({
@@ -477,7 +495,7 @@ const adminGetOrders = async (req, res, next) => {
     params.push(offset);
 
     const result = await pool.query(
-      `SELECT o.id, o.created_at, o.total_amount, o.status, o.tracking_number,
+      `SELECT o.id, o.created_at, o.total, o.status, o.tracking_number,
               o.shipping_method,
               COALESCE(u.first_name, o.ship_first_name) AS first_name,
               COALESCE(u.last_name, o.ship_last_name) AS last_name,
