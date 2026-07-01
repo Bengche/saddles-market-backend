@@ -44,6 +44,7 @@ router.post(
 );
 
 router.post("/verify-otp", verifyEmailOTP);
+router.post("/verify-email-otp", verifyEmailOTP); // alias used by the frontend
 router.get("/verify-email/:token", verifyEmailToken);
 router.post("/resend-otp", resendOTP);
 

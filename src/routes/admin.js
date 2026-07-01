@@ -12,6 +12,7 @@ const {
   adminDeleteProduct,
   adminPatchOrder,
   adminGetBlogPosts,
+  adminGetBlogPost,
   adminCreateBlogPost,
   adminUpdateBlogPost,
   adminDeleteBlogPost,
@@ -57,6 +58,7 @@ router.patch("/orders/:id", adminOnly, adminPatchOrder);
 
 // Blog
 router.get("/blog", adminOnly, adminGetBlogPosts);
+router.get("/blog/:id", adminOnly, adminGetBlogPost);
 router.post("/blog", adminOnly, adminCreateBlogPost);
 router.put("/blog/:id", adminOnly, adminUpdateBlogPost);
 router.patch("/blog/:id", adminOnly, adminUpdateBlogPost);

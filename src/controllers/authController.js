@@ -103,7 +103,24 @@ const register = async (req, res, next) => {
 // ─── Verify Email via OTP ──────────────────────────────────────────────────────
 const verifyEmailOTP = async (req, res, next) => {
   try {
-    const { userId, otpCode } = req.body;
+    // Accept either {userId, otpCode} or {email, otp} (frontend sends email+otp)
+    let { userId, otpCode, email, otp } = req.body;
+    otpCode = otpCode || otp;
+
+    // Resolve userId from email if not provided
+    if (!userId && email) {
+      const userRow = await pool.query(
+        "SELECT id FROM users WHERE email = $1",
+        [email.toLowerCase()],
+      );
+      if (userRow.rows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid or expired verification code.",
+        });
+      }
+      userId = userRow.rows[0].id;
+    }
 
     const result = await pool.query(
       `SELECT * FROM email_verifications
@@ -204,12 +221,23 @@ const verifyEmailToken = async (req, res, next) => {
 // ─── Resend OTP ────────────────────────────────────────────────────────────────
 const resendOTP = async (req, res, next) => {
   try {
-    const { userId } = req.body;
+    // Accept either {userId} or {email}
+    let { userId, email } = req.body;
 
-    const userResult = await pool.query(
-      "SELECT id, first_name, email, is_email_verified FROM users WHERE id = $1",
-      [userId],
-    );
+    let userResult;
+    if (userId) {
+      userResult = await pool.query(
+        "SELECT id, first_name, email, is_email_verified FROM users WHERE id = $1",
+        [userId],
+      );
+    } else if (email) {
+      userResult = await pool.query(
+        "SELECT id, first_name, email, is_email_verified FROM users WHERE email = $1",
+        [email.toLowerCase()],
+      );
+    } else {
+      return res.status(400).json({ success: false, message: "Email or userId required." });
+    }
 
     if (userResult.rows.length === 0) {
       return res
@@ -218,6 +246,7 @@ const resendOTP = async (req, res, next) => {
     }
 
     const user = userResult.rows[0];
+    userId = user.id;
 
     if (user.is_email_verified) {
       return res

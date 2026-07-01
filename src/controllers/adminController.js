@@ -139,6 +139,22 @@ const adminGetBlogPosts = async (req, res, next) => {
   }
 };
 
+const adminGetBlogPost = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      "SELECT * FROM blog_posts WHERE id = $1",
+      [id],
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Post not found." });
+    }
+    res.json({ success: true, post: result.rows[0] });
+  } catch (err) {
+    next(err);
+  }
+};
+
 const adminCreateBlogPost = async (req, res, next) => {
   try {
     const {
@@ -396,7 +412,9 @@ const adminGetProduct = async (req, res, next) => {
       [id],
     );
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Product not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found." });
     }
     const product = result.rows[0];
     const images = await pool.query(
@@ -466,7 +484,9 @@ const adminPatchProduct = async (req, res, next) => {
     }
 
     if (!updates.length) {
-      return res.status(400).json({ success: false, message: "No fields provided." });
+      return res
+        .status(400)
+        .json({ success: false, message: "No fields provided." });
     }
 
     values.push(id);
@@ -476,7 +496,9 @@ const adminPatchProduct = async (req, res, next) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Product not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found." });
     }
 
     // Handle image replacements if provided
@@ -490,17 +512,30 @@ const adminPatchProduct = async (req, res, next) => {
       const incomingIds = new Set(images.map((img) => img.cloudinaryId));
       for (const row of existingImages.rows) {
         if (!incomingIds.has(row.cloudinary_id)) {
-          try { await cloudinary.uploader.destroy(row.cloudinary_id); } catch { /* non-critical */ }
+          try {
+            await cloudinary.uploader.destroy(row.cloudinary_id);
+          } catch {
+            /* non-critical */
+          }
         }
       }
       // Replace all image records
-      await pool.query("DELETE FROM product_images WHERE product_id = $1", [id]);
+      await pool.query("DELETE FROM product_images WHERE product_id = $1", [
+        id,
+      ]);
       for (let i = 0; i < images.length; i++) {
         const img = images[i];
         await pool.query(
           `INSERT INTO product_images (product_id, cloudinary_id, url, alt_text, is_primary, sort_order)
            VALUES ($1, $2, $3, $4, $5, $6)`,
-          [id, img.cloudinaryId, img.url, img.altText || result.rows[0].name, img.isPrimary ?? (i === 0), i],
+          [
+            id,
+            img.cloudinaryId,
+            img.url,
+            img.altText || result.rows[0].name,
+            img.isPrimary ?? i === 0,
+            i,
+          ],
         );
       }
     }
@@ -777,6 +812,7 @@ module.exports = {
   adminDeleteProduct,
   adminPatchOrder,
   adminGetBlogPosts,
+  adminGetBlogPost,
   adminCreateBlogPost,
   adminUpdateBlogPost,
   adminDeleteBlogPost,
