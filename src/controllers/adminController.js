@@ -369,8 +369,7 @@ const adminGetProducts = async (req, res, next) => {
     params.push(parseInt(limit), offset);
     const result = await pool.query(
       `SELECT p.*, c.name AS category_name,
-              (SELECT json_agg(json_build_object('url', pi.image_url, 'alt', pi.alt_text) ORDER BY pi.display_order)
-               FROM product_images pi WHERE pi.product_id = p.id AND pi.is_primary = TRUE LIMIT 1) AS images
+              (SELECT pi.url FROM product_images pi WHERE pi.product_id = p.id AND pi.is_primary = TRUE ORDER BY pi.sort_order LIMIT 1) AS primary_image
        FROM products p LEFT JOIN categories c ON c.id = p.category_id
        ${where} ORDER BY p.created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
       params,
