@@ -307,6 +307,8 @@ const createProduct = async (req, res, next) => {
     // Handle images
     if (images && images.length > 0) {
       for (let i = 0; i < images.length; i++) {
+        const isPrimary =
+          images[i].isPrimary !== undefined ? images[i].isPrimary : i === 0;
         await pool.query(
           `INSERT INTO product_images (product_id, cloudinary_id, url, alt_text, is_primary, sort_order)
            VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -315,7 +317,7 @@ const createProduct = async (req, res, next) => {
             images[i].cloudinaryId,
             images[i].url,
             images[i].altText || name,
-            i === 0,
+            isPrimary,
             i,
           ],
         );
