@@ -1,4 +1,5 @@
 const pool = require("../config/database");
+const cloudinary = require("../config/cloudinary");
 
 const asInt = (rows, key = "count") => parseInt(rows?.[0]?.[key] ?? 0, 10);
 const asFloat = (rows, key = "total") => parseFloat(rows?.[0]?.[key] ?? 0);
@@ -384,33 +385,126 @@ const adminGetProducts = async (req, res, next) => {
   }
 };
 
+const adminGetProduct = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `SELECT p.*, c.name AS category_name
+       FROM products p
+       LEFT JOIN categories c ON c.id = p.category_id
+       WHERE p.id = $1`,
+      [id],
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Product not found." });
+    }
+    const product = result.rows[0];
+    const images = await pool.query(
+      "SELECT * FROM product_images WHERE product_id = $1 ORDER BY is_primary DESC, sort_order ASC",
+      [id],
+    );
+    res.json({ success: true, product: { ...product, images: images.rows } });
+  } catch (err) {
+    next(err);
+  }
+};
+
 const adminPatchProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { is_featured, is_active, stock_quantity } = req.body;
+    const body = req.body;
+
+    // Scalar field map: camelCase request key → snake_case column
+    const fieldMap = {
+      name: "name",
+      description: "description",
+      shortDescription: "short_description",
+      price: "price",
+      comparePrice: "compare_price",
+      costPrice: "cost_price",
+      stockQuantity: "stock_quantity",
+      lowStockThreshold: "low_stock_threshold",
+      brand: "brand",
+      categoryId: "category_id",
+      discipline: "discipline",
+      condition: "condition",
+      seatSize: "seat_size",
+      gulletWidth: "gullet_width",
+      treeType: "tree_type",
+      leatherType: "leather_type",
+      color: "color",
+      weightLbs: "weight_lbs",
+      warranty: "warranty",
+      isFeatured: "is_featured",
+      isActive: "is_active",
+      isTrialEligible: "is_trial_eligible",
+      metaTitle: "meta_title",
+      metaDescription: "meta_description",
+      metaKeywords: "meta_keywords",
+      tags: "tags",
+      availableSeatSizes: "available_seat_sizes",
+      availableColors: "available_colors",
+      availableTreeSizes: "available_tree_sizes",
+      // legacy snake_case keys sent directly from toggle buttons
+      is_featured: "is_featured",
+      is_active: "is_active",
+      stock_quantity: "stock_quantity",
+    };
+
     const updates = [];
     const values = [];
-    if (is_featured !== undefined) {
-      updates.push(`is_featured = $${values.length + 1}`);
-      values.push(is_featured);
+
+    for (const [key, col] of Object.entries(fieldMap)) {
+      if (body[key] !== undefined) {
+        // Avoid duplicate columns when both camel and snake variants are provided
+        const alreadyAdded = updates.some((u) => u.startsWith(`${col} =`));
+        if (!alreadyAdded) {
+          updates.push(`${col} = $${values.length + 1}`);
+          values.push(body[key]);
+        }
+      }
     }
-    if (is_active !== undefined) {
-      updates.push(`is_active = $${values.length + 1}`);
-      values.push(is_active);
+
+    if (!updates.length) {
+      return res.status(400).json({ success: false, message: "No fields provided." });
     }
-    if (stock_quantity !== undefined) {
-      updates.push(`stock_quantity = $${values.length + 1}`);
-      values.push(stock_quantity);
-    }
-    if (!updates.length)
-      return res
-        .status(400)
-        .json({ success: false, message: "No fields provided." });
+
     values.push(id);
     const result = await pool.query(
-      `UPDATE products SET ${updates.join(", ")} WHERE id = $${values.length} RETURNING *`,
+      `UPDATE products SET ${updates.join(", ")}, updated_at = NOW() WHERE id = $${values.length} RETURNING *`,
       values,
     );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Product not found." });
+    }
+
+    // Handle image replacements if provided
+    const { images } = body;
+    if (Array.isArray(images)) {
+      // Find cloudinary IDs that were removed
+      const existingImages = await pool.query(
+        "SELECT cloudinary_id FROM product_images WHERE product_id = $1",
+        [id],
+      );
+      const incomingIds = new Set(images.map((img) => img.cloudinaryId));
+      for (const row of existingImages.rows) {
+        if (!incomingIds.has(row.cloudinary_id)) {
+          try { await cloudinary.uploader.destroy(row.cloudinary_id); } catch { /* non-critical */ }
+        }
+      }
+      // Replace all image records
+      await pool.query("DELETE FROM product_images WHERE product_id = $1", [id]);
+      for (let i = 0; i < images.length; i++) {
+        const img = images[i];
+        await pool.query(
+          `INSERT INTO product_images (product_id, cloudinary_id, url, alt_text, is_primary, sort_order)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [id, img.cloudinaryId, img.url, img.altText || result.rows[0].name, img.isPrimary ?? (i === 0), i],
+        );
+      }
+    }
+
     res.json({ success: true, product: result.rows[0] });
   } catch (err) {
     next(err);
@@ -678,6 +772,7 @@ module.exports = {
   toggleUserActive,
   adminPatchUser,
   adminGetProducts,
+  adminGetProduct,
   adminPatchProduct,
   adminDeleteProduct,
   adminPatchOrder,

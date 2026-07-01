@@ -7,6 +7,7 @@ const {
   toggleUserActive,
   adminPatchUser,
   adminGetProducts,
+  adminGetProduct,
   adminPatchProduct,
   adminDeleteProduct,
   adminPatchOrder,
@@ -44,6 +45,7 @@ router.patch("/users/:id", adminOnly, adminPatchUser);
 
 // Products
 router.get("/products", adminOnly, adminGetProducts);
+router.get("/products/:id", adminOnly, adminGetProduct);
 router.post("/products", adminOnly, createProduct);
 router.patch("/products/:id", adminOnly, adminPatchProduct);
 router.delete("/products/:id", adminOnly, adminDeleteProduct);
