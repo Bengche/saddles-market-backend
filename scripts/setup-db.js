@@ -34,6 +34,14 @@ async function setupDatabase() {
     await client.query(schemaSql);
     console.log("Schema migration complete.");
 
+    console.log("Running migration 002 (product variant columns)...");
+    const migration002Sql = fs.readFileSync(
+      path.join(__dirname, "../migrations/002_product_variants.sql"),
+      "utf8",
+    );
+    await client.query(migration002Sql);
+    console.log("Migration 002 complete.");
+
     // ── Create admin user ──────────────────────────────────────────────────────
     console.log("Creating admin user...");
     const adminPassword = process.env.ADMIN_PASSWORD || "Boyalinco$10";
