@@ -46,6 +46,7 @@ app.use(
 const allowedOrigins = [
   SITE_CONFIG.url,
   "https://www.saddlesmarket.com",
+  "https://saddlesmarket.com",
   "http://localhost:3000",
   process.env.FRONTEND_URL,
 ].filter(Boolean);

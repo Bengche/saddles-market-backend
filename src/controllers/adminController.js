@@ -340,13 +340,18 @@ const createCoupon = async (req, res, next) => {
     const discountType = req.body.discountType || req.body.discount_type;
     const discountValue = req.body.discountValue ?? req.body.discount_value;
     const minimumOrder =
-      req.body.minimumOrder ?? req.body.minimum_order ?? req.body.min_order_amount ?? 0;
+      req.body.minimumOrder ??
+      req.body.minimum_order ??
+      req.body.min_order_amount ??
+      0;
     const maximumDiscount =
       req.body.maximumDiscount ?? req.body.maximum_discount ?? null;
-    const usageLimit =
-      req.body.usageLimit ?? req.body.usage_limit ?? null;
+    const usageLimit = req.body.usageLimit ?? req.body.usage_limit ?? null;
     const validUntil =
-      req.body.validUntil || req.body.valid_until || req.body.expires_at || null;
+      req.body.validUntil ||
+      req.body.valid_until ||
+      req.body.expires_at ||
+      null;
 
     if (!code || !discountType || discountValue === undefined) {
       return res.status(400).json({
@@ -739,7 +744,10 @@ const broadcastNewsletter = async (req, res, next) => {
     let sentCount = 0;
     for (const sub of subscribers.rows) {
       const unsubscribeLink = `${process.env.FRONTEND_URL}/newsletter/unsubscribe?token=${sub.token}`;
-      const personalised = content.replace(/{{first_name}}/g, sub.first_name || "Equestrian");
+      const personalised = content.replace(
+        /{{first_name}}/g,
+        sub.first_name || "Equestrian",
+      );
       const emailData = newsletterBroadcastTemplate({
         subject,
         htmlContent: personalised,
