@@ -273,14 +273,51 @@ const placeOrder = async (req, res, next) => {
       customerEmail,
     });
 
-    await Promise.all([
-      sendEmail({ to: customerEmail, ...customerEmailData }),
-      sendEmail({
-        to: SITE_CONFIG.contact.salesEmail,
-        replyTo: customerEmail,
-        ...salesEmailData,
-      }),
-    ]);
+    // Send emails independently — a failure on one must never suppress the other.
+    // Log results explicitly so failures are always visible in server logs.
+    sendEmail({ to: customerEmail, ...customerEmailData })
+      .then((r) => {
+        if (r.success) {
+          console.log(
+            `[Order ${order.order_number}] Customer confirmation sent to ${customerEmail}`,
+          );
+        } else {
+          console.error(
+            `[Order ${order.order_number}] Customer email FAILED to ${customerEmail}:`,
+            r.error,
+          );
+        }
+      })
+      .catch((err) =>
+        console.error(
+          `[Order ${order.order_number}] Customer email threw:`,
+          err.message,
+        ),
+      );
+
+    sendEmail({
+      to: SITE_CONFIG.contact.salesEmail,
+      replyTo: customerEmail,
+      ...salesEmailData,
+    })
+      .then((r) => {
+        if (r.success) {
+          console.log(
+            `[Order ${order.order_number}] Admin notification sent to ${SITE_CONFIG.contact.salesEmail}`,
+          );
+        } else {
+          console.error(
+            `[Order ${order.order_number}] Admin email FAILED to ${SITE_CONFIG.contact.salesEmail}:`,
+            r.error,
+          );
+        }
+      })
+      .catch((err) =>
+        console.error(
+          `[Order ${order.order_number}] Admin email threw:`,
+          err.message,
+        ),
+      );
 
     res.status(201).json({
       success: true,

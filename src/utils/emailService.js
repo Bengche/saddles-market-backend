@@ -21,9 +21,12 @@ const sendEmail = async ({ to, subject, html, text, replyTo }) => {
     console.log(`Email sent: "${subject}" to ${to}`);
     return { success: true };
   } catch (err) {
-    console.error("SendGrid error:", err.response?.body?.errors || err.message);
-    // Don't throw — email failures should not crash the main operation
-    return { success: false, error: err.message };
+    const sgErrors = err.response?.body?.errors;
+    console.error(
+      `SendGrid FAILED: "${subject}" to ${to} —`,
+      sgErrors ? JSON.stringify(sgErrors) : err.message,
+    );
+    return { success: false, error: sgErrors || err.message };
   }
 };
 
