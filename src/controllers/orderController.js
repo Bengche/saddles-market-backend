@@ -296,18 +296,18 @@ const placeOrder = async (req, res, next) => {
       );
 
     sendEmail({
-      to: SITE_CONFIG.contact.salesEmail,
+      to: SITE_CONFIG.email.adminEmail,
       replyTo: customerEmail,
       ...salesEmailData,
     })
       .then((r) => {
         if (r.success) {
           console.log(
-            `[Order ${order.order_number}] Admin notification sent to ${SITE_CONFIG.contact.salesEmail}`,
+            `[Order ${order.order_number}] Admin notification sent to ${SITE_CONFIG.email.adminEmail}`,
           );
         } else {
           console.error(
-            `[Order ${order.order_number}] Admin email FAILED to ${SITE_CONFIG.contact.salesEmail}:`,
+            `[Order ${order.order_number}] Admin email FAILED to ${SITE_CONFIG.email.adminEmail}:`,
             r.error,
           );
         }
