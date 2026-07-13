@@ -307,46 +307,106 @@ const orderNotificationSalesTemplate = ({ order, items, customerEmail }) => {
   const itemsHtml = items
     .map(
       (item) => `<tr>
-      <td style="padding:10px 12px;border-bottom:1px solid #E8E0D0;font-size:14px;color:#1C3557;">${item.product_name}${item.seat_size ? ` (${item.seat_size}")` : ""}${item.selected_color ? ` — ${item.selected_color}` : ""}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #E8E0D0;font-size:14px;color:#1C3557;">${item.product_name}${item.seat_size ? ` (${item.seat_size}")` : ""}${item.selected_color ? ` &mdash; ${item.selected_color}` : ""}${item.selected_tree_size ? ` &mdash; Tree: ${item.selected_tree_size}` : ""}</td>
       <td style="padding:10px 12px;border-bottom:1px solid #E8E0D0;text-align:center;font-size:14px;color:#3A3A3A;">${item.quantity}</td>
       <td style="padding:10px 12px;border-bottom:1px solid #E8E0D0;text-align:right;font-size:14px;color:#1C3557;font-weight:bold;">$${parseFloat(item.total).toFixed(2)}</td>
     </tr>`,
     )
     .join("");
 
+  const customerPhone = order.guest_phone || order.ship_phone || "";
+  const customerName = `${order.ship_first_name} ${order.ship_last_name}`;
+
   return {
-    subject: `New Order \u2014 ${order.order_number} \u2014 $${parseFloat(order.total).toFixed(2)}`,
+    subject: `ACTION REQUIRED \u2014 New Order ${order.order_number} \u2014 $${parseFloat(order.total).toFixed(2)} | ${name}`,
     html: baseTemplate(
       `
-    <p class="email-greeting">New Order Received</p>
-    <p class="email-text">A new order has been placed and requires your attention. Please contact the customer within 24 hours to confirm payment.</p>
+    <p class="email-greeting">New Order Received &mdash; Action Required</p>
+    <p class="email-text">A new order has been placed. You must contact the customer within <strong>24 hours</strong> to confirm payment details and arrange fulfilment. Use the reply button on this email to respond directly to the customer.</p>
 
-    <div class="email-info-box">
-      <p>
-        <strong>Order:</strong> ${order.order_number}<br/>
-        <strong>Customer:</strong> ${order.ship_first_name} ${order.ship_last_name}<br/>
-        <strong>Email:</strong> <a href="mailto:${customerEmail}" style="color:#1C3557;">${customerEmail}</a><br/>
-        ${order.guest_phone ? `<strong>Phone:</strong> ${order.guest_phone}<br/>` : ""}
-        <strong>Order Total:</strong> $${parseFloat(order.total).toFixed(2)}<br/>
-        <strong>Payment Status:</strong> Pending
-      </p>
+    <!-- ACTION ALERT BOX -->
+    <div style="background:#FFF3CD;border-left:4px solid #C4A862;padding:18px 22px;margin:24px 0;border-radius:0 4px 4px 0;">
+      <p style="font-size:15px;color:#5A4000;margin:0 0 6px;font-weight:bold;">&#9888; Your Next Steps</p>
+      <ol style="margin:0;padding-left:20px;font-size:14px;color:#3A2800;line-height:1.8;">
+        <li>Reply to this email (reply goes directly to the customer) to confirm you have received their order.</li>
+        <li>Send the customer your payment details (bank transfer, PayPal, etc.) so they can complete payment.</li>
+        <li>Once payment is received, update the order status in the admin panel to <strong>Confirmed</strong>.</li>
+      </ol>
     </div>
 
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border:1px solid #E8E0D0;margin:24px 0;">
+    <!-- CUSTOMER INFO -->
+    <div class="email-info-box">
+      <p style="font-size:15px;color:#1C3557;font-weight:bold;margin-bottom:10px;">Customer Details</p>
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="padding:5px 0;font-size:14px;color:#6A6A6A;width:130px;">Name</td>
+          <td style="padding:5px 0;font-size:14px;color:#1C3557;font-weight:bold;">${customerName}</td>
+        </tr>
+        <tr>
+          <td style="padding:5px 0;font-size:14px;color:#6A6A6A;">Email</td>
+          <td style="padding:5px 0;font-size:14px;">
+            <a href="mailto:${customerEmail}" style="color:#1C3557;font-weight:bold;">${customerEmail}</a>
+          </td>
+        </tr>
+        ${
+          customerPhone
+            ? `<tr>
+          <td style="padding:5px 0;font-size:14px;color:#6A6A6A;">Phone</td>
+          <td style="padding:5px 0;font-size:14px;">
+            <a href="tel:${customerPhone}" style="color:#1C3557;font-weight:bold;">${customerPhone}</a>
+          </td>
+        </tr>`
+            : ""
+        }
+        <tr>
+          <td style="padding:5px 0;font-size:14px;color:#6A6A6A;">Order #</td>
+          <td style="padding:5px 0;font-size:14px;color:#1C3557;font-weight:bold;">${order.order_number}</td>
+        </tr>
+        <tr>
+          <td style="padding:5px 0;font-size:14px;color:#6A6A6A;">Order Total</td>
+          <td style="padding:5px 0;font-size:15px;color:#1C3557;font-weight:bold;">$${parseFloat(order.total).toFixed(2)}</td>
+        </tr>
+        <tr>
+          <td style="padding:5px 0;font-size:14px;color:#6A6A6A;">Placed On</td>
+          <td style="padding:5px 0;font-size:14px;color:#3A3A3A;">${new Date(order.created_at).toLocaleString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}</td>
+        </tr>
+        <tr>
+          <td style="padding:5px 0;font-size:14px;color:#6A6A6A;">Payment Status</td>
+          <td style="padding:5px 0;"><span class="status-badge status-pending">Pending</span></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ORDER ITEMS -->
+    <p class="email-text" style="font-weight:bold;color:#1C3557;margin-bottom:10px;">Items Ordered</p>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border:1px solid #E8E0D0;margin-bottom:24px;">
       <thead>
         <tr style="background:#1C3557;color:#fff;">
-          <th style="padding:10px 12px;text-align:left;font-size:12px;letter-spacing:1px;font-weight:400;">Product</th>
-          <th style="padding:10px 12px;text-align:center;font-size:12px;letter-spacing:1px;font-weight:400;">Qty</th>
-          <th style="padding:10px 12px;text-align:right;font-size:12px;letter-spacing:1px;font-weight:400;">Total</th>
+          <th style="padding:10px 12px;text-align:left;font-size:12px;letter-spacing:1px;font-weight:400;text-transform:uppercase;">Product</th>
+          <th style="padding:10px 12px;text-align:center;font-size:12px;letter-spacing:1px;font-weight:400;text-transform:uppercase;">Qty</th>
+          <th style="padding:10px 12px;text-align:right;font-size:12px;letter-spacing:1px;font-weight:400;text-transform:uppercase;">Total</th>
         </tr>
       </thead>
       <tbody>${itemsHtml}</tbody>
       <tfoot>
-        <tr><td colspan="3" style="padding:10px 12px;border-top:2px solid #1C3557;text-align:right;font-size:16px;color:#1C3557;font-weight:bold;">Total: $${parseFloat(order.total).toFixed(2)}</td></tr>
+        <tr style="background:#FAFAF7;">
+          <td colspan="2" style="padding:8px 12px;font-size:13px;color:#6A6A6A;">Subtotal</td>
+          <td style="padding:8px 12px;text-align:right;font-size:13px;color:#3A3A3A;">$${parseFloat(order.subtotal).toFixed(2)}</td>
+        </tr>
+        <tr style="background:#FAFAF7;">
+          <td colspan="2" style="padding:4px 12px;font-size:13px;color:#6A6A6A;">Shipping (${order.shipping_method || "standard"})</td>
+          <td style="padding:4px 12px;text-align:right;font-size:13px;color:#3A3A3A;">${parseFloat(order.shipping_cost) === 0 ? "Free" : "$" + parseFloat(order.shipping_cost).toFixed(2)}</td>
+        </tr>
+        ${parseFloat(order.discount_amount) > 0 ? `<tr style="background:#FAFAF7;"><td colspan="2" style="padding:4px 12px;font-size:13px;color:#6A6A6A;">Discount${order.coupon_code ? ` (${order.coupon_code})` : ""}</td><td style="padding:4px 12px;text-align:right;font-size:13px;color:#2D7A4F;">-$${parseFloat(order.discount_amount).toFixed(2)}</td></tr>` : ""}
+        <tr>
+          <td colspan="2" style="padding:10px 12px;border-top:2px solid #1C3557;font-size:16px;color:#1C3557;font-weight:bold;">Order Total</td>
+          <td style="padding:10px 12px;border-top:2px solid #1C3557;text-align:right;font-size:16px;color:#1C3557;font-weight:bold;">$${parseFloat(order.total).toFixed(2)}</td>
+        </tr>
       </tfoot>
     </table>
 
-    <p class="email-text" style="margin-bottom:6px;"><strong>Ship to:</strong></p>
+    <!-- SHIPPING ADDRESS -->
+    <p class="email-text" style="font-weight:bold;color:#1C3557;margin-bottom:6px;">Ship To</p>
     <p class="email-text" style="margin-top:0;">
       ${order.ship_first_name} ${order.ship_last_name}<br/>
       ${order.ship_street_line1}${order.ship_street_line2 ? ", " + order.ship_street_line2 : ""}<br/>
@@ -355,8 +415,22 @@ const orderNotificationSalesTemplate = ({ order, items, customerEmail }) => {
 
     ${order.customer_notes ? `<div class="email-info-box"><p><strong>Customer Notes:</strong><br/>${order.customer_notes}</p></div>` : ""}
 
+    <!-- PAYMENT REPLY TEMPLATE -->
+    <hr class="email-divider" />
+    <p class="email-text" style="font-weight:bold;color:#1C3557;margin-bottom:8px;">Suggested Reply to Customer</p>
+    <div style="background:#F5EFE6;border:1px dashed #C4A862;padding:20px 24px;border-radius:4px;margin-bottom:24px;">
+      <p style="font-size:13px;color:#6A6A6A;margin-bottom:12px;font-style:italic;">Copy, personalise, and reply directly to ${customerEmail}</p>
+      <p style="font-size:14px;color:#1C3557;line-height:1.8;margin-bottom:10px;">Dear ${order.ship_first_name},</p>
+      <p style="font-size:14px;color:#3A3A3A;line-height:1.8;margin-bottom:10px;">Thank you for your order <strong>${order.order_number}</strong> from ${name}. We have received it and are pleased to confirm the total amount due is <strong>$${parseFloat(order.total).toFixed(2)}</strong>.</p>
+      <p style="font-size:14px;color:#3A3A3A;line-height:1.8;margin-bottom:10px;">To complete your purchase, please send payment using one of the following methods:</p>
+      <p style="font-size:14px;color:#3A3A3A;line-height:1.8;margin-bottom:4px;"><strong>[Add your payment details here — bank transfer, PayPal, Zelle, etc.]</strong></p>
+      <p style="font-size:14px;color:#3A3A3A;line-height:1.8;margin-bottom:10px;">Once we confirm receipt of payment, we will begin preparing your saddle for dispatch and provide you with tracking information. Your 30-day free trial begins from the date of delivery.</p>
+      <p style="font-size:14px;color:#3A3A3A;line-height:1.8;margin-bottom:10px;">If you have any questions, please do not hesitate to reply to this email or call us at ${contact.phone}.</p>
+      <p style="font-size:14px;color:#1C3557;line-height:1.8;">Warm regards,<br/><strong>${name} Sales Team</strong></p>
+    </div>
+
     <div class="email-cta-wrapper">
-      <a href="${url}/admin/orders/${order.id}" class="email-cta">Open in Admin Panel</a>
+      <a href="${url}/admin/orders/${order.id}" class="email-cta">Open Order in Admin Panel</a>
     </div>
     `,
     ),

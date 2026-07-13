@@ -275,7 +275,11 @@ const placeOrder = async (req, res, next) => {
 
     await Promise.all([
       sendEmail({ to: customerEmail, ...customerEmailData }),
-      sendEmail({ to: SITE_CONFIG.contact.salesEmail, ...salesEmailData }),
+      sendEmail({
+        to: SITE_CONFIG.contact.salesEmail,
+        replyTo: customerEmail,
+        ...salesEmailData,
+      }),
     ]);
 
     res.status(201).json({
