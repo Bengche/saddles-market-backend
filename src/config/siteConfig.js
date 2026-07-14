@@ -32,13 +32,13 @@ const SITE_CONFIG = {
   },
 
   email: {
-    fromName: "Saddles Market",
-    fromEmail: "support@saddlesmarket.com",
+    fromName: process.env.FROM_NAME || "Saddles Market",
+    fromEmail: process.env.FROM_EMAIL || "support@saddlesmarket.com",
     // Admin order notifications go here. Override via ADMIN_EMAIL env var
     // so you can point to any inbox (e.g. a Gmail) without redeploying.
     adminEmail: process.env.ADMIN_EMAIL || "sales@saddlesmarket.com",
     salesEmail: "sales@saddlesmarket.com",
-    replyTo: "support@saddlesmarket.com",
+    replyTo: process.env.FROM_EMAIL || "support@saddlesmarket.com",
   },
 
   social: {

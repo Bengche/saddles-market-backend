@@ -17,9 +17,12 @@ const sendEmail = async ({ to, subject, html, text, replyTo }) => {
   };
 
   try {
-    await sgMail.send(msg);
-    console.log(`Email sent: "${subject}" to ${to}`);
-    return { success: true };
+    const [response] = await sgMail.send(msg);
+    const msgId = response?.headers?.["x-message-id"] || "unknown";
+    console.log(
+      `Email accepted by SendGrid: "${subject}" to ${to} | x-message-id: ${msgId} | status: ${response?.statusCode}`,
+    );
+    return { success: true, messageId: msgId };
   } catch (err) {
     const sgErrors = err.response?.body?.errors;
     console.error(
