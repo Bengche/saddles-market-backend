@@ -318,20 +318,20 @@ const orderNotificationSalesTemplate = ({ order, items, customerEmail }) => {
   const customerName = `${order.ship_first_name} ${order.ship_last_name}`;
 
   return {
-    subject: `ACTION REQUIRED \u2014 New Order ${order.order_number} \u2014 $${parseFloat(order.total).toFixed(2)} | ${name}`,
+    subject: `New Order ${order.order_number} — ${name} Sales Notification`,
     html: baseTemplate(
       `
-    <p class="email-greeting">New Order Received &mdash; Action Required</p>
-    <p class="email-text">A new order has been placed. You must contact the customer within <strong>24 hours</strong> to confirm payment details and arrange fulfilment. Use the reply button on this email to respond directly to the customer.</p>
+    <p class="email-greeting">New Order Received</p>
+    <p class="email-text">A new order has been placed. Please contact the customer within <strong>24 hours</strong> to confirm payment details. Replying to this email will go directly to the customer.</p>
 
-    <!-- ACTION ALERT BOX -->
-    <div style="background:#FFF3CD;border-left:4px solid #C4A862;padding:18px 22px;margin:24px 0;border-radius:0 4px 4px 0;">
-      <p style="font-size:15px;color:#5A4000;margin:0 0 6px;font-weight:bold;">&#9888; Your Next Steps</p>
-      <ol style="margin:0;padding-left:20px;font-size:14px;color:#3A2800;line-height:1.8;">
-        <li>Reply to this email (reply goes directly to the customer) to confirm you have received their order.</li>
-        <li>Send the customer your payment details (bank transfer, PayPal, etc.) so they can complete payment.</li>
-        <li>Once payment is received, update the order status in the admin panel to <strong>Confirmed</strong>.</li>
-      </ol>
+    <!-- NEXT STEPS -->
+    <div class="email-info-box" style="border-left-color:#1C3557;">
+      <p style="font-size:14px;color:#1C3557;font-weight:bold;margin:0 0 8px;">Next steps</p>
+      <p style="font-size:14px;color:#3A3A3A;line-height:1.8;margin:0;">
+        1. Reply to this email to confirm receipt of the order — your reply goes directly to the customer.<br/>
+        2. Send the customer your payment details so they can complete the transaction.<br/>
+        3. Once payment is received, mark the order as Confirmed in the admin panel.
+      </p>
     </div>
 
     <!-- CUSTOMER INFO -->
