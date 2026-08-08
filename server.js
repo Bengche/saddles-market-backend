@@ -24,6 +24,7 @@ const contactRoutes = require("./src/routes/contact");
 const uploadRoutes = require("./src/routes/upload");
 const reviewRoutes = require("./src/routes/reviews");
 const blogRoutes = require("./src/routes/blog");
+const chatRoutes = require("./src/routes/chat");
 
 // Jobs
 const { startCartAbandonmentJob } = require("./src/jobs/cartAbandonmentJob");
@@ -108,6 +109,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/blog", blogRoutes);
+app.use("/api/chat", chatRoutes);
 
 // ─── Error handling ───────────────────────────────────────────────────────────
 app.use(notFound);
