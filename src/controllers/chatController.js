@@ -38,11 +38,50 @@ STRICT RULES:
 // Extract product-relevant keywords from the user's message
 function extractKeywords(message) {
   const stopWords = new Set([
-    "do", "you", "have", "any", "the", "and", "for", "are", "can", "tell",
-    "me", "about", "what", "how", "much", "does", "cost", "price", "is",
-    "there", "that", "this", "your", "our", "which", "would", "could",
-    "should", "want", "need", "looking", "show", "like", "find", "get",
-    "will", "with", "from", "also", "some", "all", "its", "been", "has",
+    "do",
+    "you",
+    "have",
+    "any",
+    "the",
+    "and",
+    "for",
+    "are",
+    "can",
+    "tell",
+    "me",
+    "about",
+    "what",
+    "how",
+    "much",
+    "does",
+    "cost",
+    "price",
+    "is",
+    "there",
+    "that",
+    "this",
+    "your",
+    "our",
+    "which",
+    "would",
+    "could",
+    "should",
+    "want",
+    "need",
+    "looking",
+    "show",
+    "like",
+    "find",
+    "get",
+    "will",
+    "with",
+    "from",
+    "also",
+    "some",
+    "all",
+    "its",
+    "been",
+    "has",
   ]);
 
   return message
@@ -92,17 +131,25 @@ const chat = async (req, res, next) => {
     const { message, history = [] } = req.body;
 
     if (!message || typeof message !== "string" || !message.trim()) {
-      return res.status(400).json({ success: false, message: "Message is required." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Message is required." });
     }
     if (message.length > 500) {
-      return res.status(400).json({ success: false, message: "Message too long." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Message too long." });
     }
     if (!Array.isArray(history)) {
-      return res.status(400).json({ success: false, message: "Invalid history format." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid history format." });
     }
 
     if (!process.env.GEMINI_API_KEY) {
-      return res.status(503).json({ success: false, message: "AI service not configured." });
+      return res
+        .status(503)
+        .json({ success: false, message: "AI service not configured." });
     }
 
     // Search the product catalogue in parallel with setting up the AI client
