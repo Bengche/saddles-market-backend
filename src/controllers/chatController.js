@@ -192,7 +192,7 @@ const chat = async (req, res, next) => {
     });
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-flash-latest",
       contents,
       config: {
         systemInstruction: SYSTEM_PROMPT + productContext,
