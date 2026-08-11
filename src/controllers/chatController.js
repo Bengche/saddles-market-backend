@@ -35,7 +35,6 @@ STRICT RULES:
 - When products are displayed as cards below your message, reference them with "tap the card to explore" or similar
 - If no products match, ask a clarifying question or recommend they browse the full collection at /products`;
 
-// Extract product-relevant keywords from the user's message
 function extractKeywords(message) {
   const stopWords = new Set([
     "do",
@@ -96,7 +95,6 @@ async function searchProducts(message) {
   const keywords = extractKeywords(message);
   if (keywords.length === 0) return [];
 
-  // Build OR conditions across name, brand, discipline, short_description
   const conditions = keywords.map(
     (_, i) =>
       `(p.name ILIKE $${i + 1} OR p.brand ILIKE $${i + 1} OR p.short_description ILIKE $${i + 1} OR p.discipline::text ILIKE $${i + 1} OR c.name ILIKE $${i + 1})`,
@@ -121,7 +119,8 @@ async function searchProducts(message) {
       values,
     );
     return result.rows;
-  } catch {
+  } catch (err) {
+    console.error("Database product search error:", err.message);
     return [];
   }
 }
@@ -152,8 +151,12 @@ const chat = async (req, res, next) => {
         .json({ success: false, message: "AI service not configured." });
     }
 
-    // Search the product catalogue in parallel with setting up the AI client
-    const products = await searchProducts(message.trim());
+    let products = [];
+    try {
+      products = await searchProducts(message.trim());
+    } catch {
+      products = [];
+    }
 
     const productContext =
       products.length > 0
@@ -171,9 +174,14 @@ const chat = async (req, res, next) => {
         : "\n\n[AVAILABLE PRODUCTS] No exact matches found for this query. Respond helpfully — ask a clarifying question or invite them to browse /products.";
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+    // Using gemini-2.5-flash with proper system instruction formatting
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-      systemInstruction: SYSTEM_PROMPT + productContext,
+      model: "gemini-2.5-flash",
+      systemInstruction: {
+        role: "system",
+        parts: [{ text: SYSTEM_PROMPT + productContext }],
+      },
       generationConfig: {
         maxOutputTokens: 300,
         temperature: 0.7,
@@ -181,7 +189,6 @@ const chat = async (req, res, next) => {
       },
     });
 
-    // Map conversation history to Gemini format (cap at 10 turns to control tokens)
     const geminiHistory = history
       .filter((m) => m.role && m.content && typeof m.content === "string")
       .slice(-10)
@@ -194,7 +201,7 @@ const chat = async (req, res, next) => {
     const result = await chatSession.sendMessage(message.trim());
     const reply = result.response.text();
 
-    res.json({
+    return res.json({
       success: true,
       reply,
       products: products.map((p) => ({
@@ -210,7 +217,11 @@ const chat = async (req, res, next) => {
       })),
     });
   } catch (err) {
-    next(err);
+    console.error("Gemini API execution error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to generate AI response. Please try again.",
+    });
   }
 };
 
