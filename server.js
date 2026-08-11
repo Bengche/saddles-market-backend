@@ -4,6 +4,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
 const morgan = require("morgan");
+const rateLimit = require("express-rate-limit");
 const cron = require("node-cron");
 
 const SITE_CONFIG = require("./src/config/siteConfig");
@@ -73,10 +74,14 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // ─── Compression ──────────────────────────────────────────────────────────────
 app.use(compression());
 
-// ─── Request logging (development & production error debugging) ───────────────
+// ─── Request logging (development only) ──────────────────────────────────────
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
+
+// ─── Rate limiting ────────────────────────────────────────────────────────────
+app.use("/api/auth", authLimiter);
+app.use("/api", generalLimiter);
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {
@@ -92,19 +97,19 @@ app.get("/", (req, res) => {
   res.json({ message: `${SITE_CONFIG.name} API`, version: "1.0.0" });
 });
 
-// ─── API Routes (With Rate Limiters Attached Specifically) ────────────────────
-app.use("/api/auth", authLimiter, authRoutes);
-app.use("/api/chat", chatRoutes); // Dedicated limiter already inside chat.js
-app.use("/api/products", generalLimiter, productRoutes);
-app.use("/api/orders", generalLimiter, orderRoutes);
-app.use("/api/cart", generalLimiter, cartRoutes);
-app.use("/api/favorites", generalLimiter, favoritesRoutes);
-app.use("/api/newsletter", generalLimiter, newsletterRoutes);
-app.use("/api/admin", generalLimiter, adminRoutes);
-app.use("/api/contact", generalLimiter, contactRoutes);
-app.use("/api/upload", generalLimiter, uploadRoutes);
-app.use("/api/reviews", generalLimiter, reviewRoutes);
-app.use("/api/blog", generalLimiter, blogRoutes);
+// ─── API Routes ───────────────────────────────────────────────────────────────
+app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/favorites", favoritesRoutes);
+app.use("/api/newsletter", newsletterRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/contact", contactRoutes);
+app.use("/api/upload", uploadRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/blog", blogRoutes);
+app.use("/api/chat", chatRoutes);
 
 // ─── Error handling ───────────────────────────────────────────────────────────
 app.use(notFound);
@@ -113,7 +118,7 @@ app.use(errorHandler);
 // ─── Start server ─────────────────────────────────────────────────────────────
 runMigrations()
   .then(() => {
-    app.listen(PORT, "0.0.0.0", () => {
+    app.listen(PORT, () => {
       console.log(`\n────────────────────────────────────────────────────`);
       console.log(`  ${SITE_CONFIG.name} API`);
       console.log(`  Running on port ${PORT}`);
