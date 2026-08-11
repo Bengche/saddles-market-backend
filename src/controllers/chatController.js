@@ -1,4 +1,4 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
 const pool = require("../config/database");
 const SITE_CONFIG = require("../config/siteConfig");
 
@@ -173,23 +173,11 @@ const chat = async (req, res, next) => {
             .join("\n")
         : "\n\n[AVAILABLE PRODUCTS] No exact matches found for this query. Respond helpfully — ask a clarifying question or invite them to browse /products.";
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    // Initialize new SDK client
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-    // Using gemini-2.5-flash with proper system instruction formatting
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      systemInstruction: {
-        role: "system",
-        parts: [{ text: SYSTEM_PROMPT + productContext }],
-      },
-      generationConfig: {
-        maxOutputTokens: 300,
-        temperature: 0.7,
-        topP: 0.9,
-      },
-    });
-
-    const geminiHistory = history
+    // Format conversation history for new SDK
+    const contents = history
       .filter((m) => m.role && m.content && typeof m.content === "string")
       .slice(-10)
       .map((m) => ({
@@ -197,13 +185,26 @@ const chat = async (req, res, next) => {
         parts: [{ text: m.content.slice(0, 1000) }],
       }));
 
-    const chatSession = model.startChat({ history: geminiHistory });
-    const result = await chatSession.sendMessage(message.trim());
-    const reply = result.response.text();
+    // Add current user prompt
+    contents.push({
+      role: "user",
+      parts: [{ text: message.trim() }],
+    });
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents,
+      config: {
+        systemInstruction: SYSTEM_PROMPT + productContext,
+        maxOutputTokens: 300,
+        temperature: 0.7,
+        topP: 0.9,
+      },
+    });
 
     return res.json({
       success: true,
-      reply,
+      reply: response.text,
       products: products.map((p) => ({
         id: p.id,
         name: p.name,
