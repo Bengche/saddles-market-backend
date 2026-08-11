@@ -121,7 +121,8 @@ async function searchProducts(message) {
       values,
     );
     return result.rows;
-  } catch {
+  } catch (err) {
+    console.error("Error executing product search query:", err.message);
     return [];
   }
 }
@@ -152,8 +153,14 @@ const chat = async (req, res, next) => {
         .json({ success: false, message: "AI service not configured." });
     }
 
-    // Search the product catalogue in parallel with setting up the AI client
-    const products = await searchProducts(message.trim());
+    // Safely search the product catalogue
+    let products = [];
+    try {
+      products = await searchProducts(message.trim());
+    } catch (dbErr) {
+      console.error("Database search failed cleanly:", dbErr.message);
+      products = [];
+    }
 
     const productContext =
       products.length > 0
@@ -171,9 +178,13 @@ const chat = async (req, res, next) => {
         : "\n\n[AVAILABLE PRODUCTS] No exact matches found for this query. Respond helpfully — ask a clarifying question or invite them to browse /products.";
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+    // Updated to Gemini 2.5 Flash and structured systemInstruction format
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-      systemInstruction: SYSTEM_PROMPT + productContext,
+      model: "gemini-2.5-flash",
+      systemInstruction: {
+        parts: [{ text: SYSTEM_PROMPT + productContext }],
+      },
       generationConfig: {
         maxOutputTokens: 300,
         temperature: 0.7,
