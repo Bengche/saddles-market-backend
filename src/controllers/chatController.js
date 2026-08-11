@@ -196,7 +196,7 @@ const chat = async (req, res, next) => {
       contents,
       config: {
         systemInstruction: SYSTEM_PROMPT + productContext,
-        maxOutputTokens: 300,
+        // maxOutputTokens: 300,
         temperature: 0.7,
         topP: 0.9,
       },
