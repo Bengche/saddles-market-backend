@@ -536,11 +536,11 @@ const adminGetOrders = async (req, res, next) => {
     params.push(offset);
 
     const result = await pool.query(
-      `SELECT o.id, o.created_at, o.total, o.status, o.tracking_number,
+      `SELECT o.id, o.created_at, o.total, o.total AS total_amount, o.status, o.tracking_number,
               o.shipping_method,
               COALESCE(u.first_name, o.ship_first_name) AS first_name,
               COALESCE(u.last_name, o.ship_last_name) AS last_name,
-              COALESCE(u.email, o.guest_email, o.ship_email) AS email
+              COALESCE(u.email, o.guest_email) AS email
        FROM orders o
        LEFT JOIN users u ON u.id = o.user_id
        ${whereClause}
