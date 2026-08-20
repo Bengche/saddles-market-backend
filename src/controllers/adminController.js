@@ -691,9 +691,9 @@ const getNewsletterSubscribers = async (req, res, next) => {
     );
     params.push(parseInt(limit), offset);
     const result = await pool.query(
-      `SELECT id, email, first_name, is_active, created_at AS subscribed_at
+      `SELECT id, email, first_name, is_active, subscribed_at
        FROM newsletter_subscribers ${where}
-       ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
+       ORDER BY subscribed_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`,
       params,
     );
     res.json({
