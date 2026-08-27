@@ -28,20 +28,22 @@ const getProducts = async (req, res, next) => {
       conditions.push(`c.slug = $${params.length}`);
     }
     if (discipline) {
-      // Broad category slugs expand to all related discipline values
+      // Broad category slugs expand to all related discipline enum values
       const DISCIPLINE_GROUPS = {
-        english:       ["english", "dressage", "jumping", "eventing", "all_purpose", "hunter", "hunter_jumper"],
-        western:       ["western", "barrel_racing", "trail", "reining", "roping", "western_pleasure", "cutting"],
-        dressage:      ["dressage", "english"],
-        jumping:       ["jumping", "eventing", "hunter", "hunter_jumper", "english"],
-        trail:         ["trail", "trail_riding", "western"],
-        youth:         ["youth"],
-        barrel_racing: ["barrel_racing", "western"],
-        all_purpose:   ["all_purpose", "english"],
+        english:       ["english", "dressage", "jumping", "all_purpose"],
+        western:       ["western", "barrel_racing", "trail", "cutting", "endurance"],
+        dressage:      ["dressage"],
+        jumping:       ["jumping"],
+        trail:         ["trail", "endurance"],
+        barrel_racing: ["barrel_racing"],
+        all_purpose:   ["all_purpose"],
+        cutting:       ["cutting"],
+        endurance:     ["endurance"],
+        youth:         ["other"],
       };
       const related = DISCIPLINE_GROUPS[discipline.toLowerCase()] || [discipline.toLowerCase()];
       params.push(related);
-      conditions.push(`p.discipline = ANY($${params.length}::text[])`);
+      conditions.push(`p.discipline::text = ANY($${params.length}::text[])`);
     }
     if (minPrice) {
       params.push(parseFloat(minPrice));
