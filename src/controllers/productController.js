@@ -41,7 +41,7 @@ const getProducts = async (req, res, next) => {
       };
       const related = DISCIPLINE_GROUPS[discipline.toLowerCase()] || [discipline.toLowerCase()];
       params.push(related);
-      conditions.push(`LOWER(p.discipline) = ANY($${params.length})`);
+      conditions.push(`p.discipline = ANY($${params.length}::text[])`);
     }
     if (minPrice) {
       params.push(parseFloat(minPrice));
