@@ -193,13 +193,17 @@ const orderConfirmationTemplate = ({
   customerEmail,
   paymentMethod,
 }) => {
-  const paymentMethodLabel = {
-    bank_transfer: "Bank Transfer",
-    zelle: "Zelle",
-    crypto: "Cryptocurrency",
-  }[paymentMethod] || (paymentMethod
-    ? paymentMethod.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
-    : "Bank Transfer");
+  const paymentMethodLabel =
+    {
+      bank_transfer: "Bank Transfer",
+      zelle: "Zelle",
+      crypto: "Cryptocurrency",
+    }[paymentMethod] ||
+    (paymentMethod
+      ? paymentMethod
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase())
+      : "Bank Transfer");
   const itemsHtml = items
     .map(
       (item) => `
@@ -243,7 +247,7 @@ const orderConfirmationTemplate = ({
       <div class="order-totals">
         <table width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr><td style="padding:10px 0 4px;font-size:14px;color:#3A3A3A;">Subtotal</td><td style="padding:10px 0 4px;text-align:right;font-size:14px;color:#3A3A3A;">$${parseFloat(order.subtotal).toFixed(2)}</td></tr>
-          <tr><td style="padding:4px 0;font-size:14px;color:#3A3A3A;">${(order.shipping_method || "standard") === "express" ? "Express Shipping (2–3 days)" : "Standard Shipping (5–7 days)"}</td><td style="padding:4px 0;text-align:right;font-size:14px;">${parseFloat(order.shipping_cost) === 0 ? "<span style=\"color:#2D7A4F;font-weight:600;\">Free</span>" : "<span style=\"color:#3A3A3A;\">$" + parseFloat(order.shipping_cost).toFixed(2) + "</span>"}</td></tr>
+          <tr><td style="padding:4px 0;font-size:14px;color:#3A3A3A;">${(order.shipping_method || "standard") === "express" ? "Express Shipping (2–3 days)" : "Standard Shipping (5–7 days)"}</td><td style="padding:4px 0;text-align:right;font-size:14px;">${parseFloat(order.shipping_cost) === 0 ? '<span style="color:#2D7A4F;font-weight:600;">Free</span>' : '<span style="color:#3A3A3A;">$' + parseFloat(order.shipping_cost).toFixed(2) + "</span>"}</td></tr>
           ${parseFloat(order.discount_amount) > 0 ? `<tr><td style="padding:4px 0;font-size:14px;color:#3A3A3A;">Discount${order.coupon_code ? ` (${order.coupon_code})` : ""}</td><td style="padding:4px 0;text-align:right;font-size:14px;color:#2D7A4F;">-$${parseFloat(order.discount_amount).toFixed(2)}</td></tr>` : ""}
           <tr><td colspan="2" style="padding:10px 0 4px;border-top:1px solid #E8E0D0;"></td></tr>
           <tr><td style="padding:4px 0;font-size:17px;color:#1C3557;font-weight:bold;">Total</td><td style="padding:4px 0;text-align:right;font-size:17px;color:#1C3557;font-weight:bold;">$${parseFloat(order.total).toFixed(2)}</td></tr>
@@ -312,14 +316,23 @@ const orderConfirmationTemplate = ({
 };
 
 // ─── Order Notification (Sales Team) ─────────────────────────────────────────
-const orderNotificationSalesTemplate = ({ order, items, customerEmail, paymentMethod }) => {
-  const paymentMethodLabel = {
-    bank_transfer: "Bank Transfer",
-    zelle: "Zelle",
-    crypto: "Cryptocurrency",
-  }[paymentMethod] || (paymentMethod
-    ? paymentMethod.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
-    : "Bank Transfer");
+const orderNotificationSalesTemplate = ({
+  order,
+  items,
+  customerEmail,
+  paymentMethod,
+}) => {
+  const paymentMethodLabel =
+    {
+      bank_transfer: "Bank Transfer",
+      zelle: "Zelle",
+      crypto: "Cryptocurrency",
+    }[paymentMethod] ||
+    (paymentMethod
+      ? paymentMethod
+          .replace(/_/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase())
+      : "Bank Transfer");
   const itemsHtml = items
     .map(
       (item) => `<tr>
@@ -415,7 +428,7 @@ const orderNotificationSalesTemplate = ({ order, items, customerEmail, paymentMe
         </tr>
         <tr style="background:#FAFAF7;">
           <td colspan="2" style="padding:4px 12px;font-size:13px;color:#6A6A6A;">${(order.shipping_method || "standard") === "express" ? "Express Shipping (2–3 days)" : "Standard Shipping (5–7 days)"}</td>
-          <td style="padding:4px 12px;text-align:right;font-size:13px;">${parseFloat(order.shipping_cost) === 0 ? "<span style=\"color:#2D7A4F;font-weight:600;\">Free</span>" : "<span style=\"color:#3A3A3A;\">$" + parseFloat(order.shipping_cost).toFixed(2) + "</span>"}</td>
+          <td style="padding:4px 12px;text-align:right;font-size:13px;">${parseFloat(order.shipping_cost) === 0 ? '<span style="color:#2D7A4F;font-weight:600;">Free</span>' : '<span style="color:#3A3A3A;">$' + parseFloat(order.shipping_cost).toFixed(2) + "</span>"}</td>
         </tr>
         ${parseFloat(order.discount_amount) > 0 ? `<tr style="background:#FAFAF7;"><td colspan="2" style="padding:4px 12px;font-size:13px;color:#6A6A6A;">Discount${order.coupon_code ? ` (${order.coupon_code})` : ""}</td><td style="padding:4px 12px;text-align:right;font-size:13px;color:#2D7A4F;">-$${parseFloat(order.discount_amount).toFixed(2)}</td></tr>` : ""}
         <tr>
