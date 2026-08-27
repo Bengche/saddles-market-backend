@@ -31,6 +31,7 @@ const {
 const { createProduct } = require("../controllers/productController");
 const {
   adminGetOrders,
+  adminGetOrderById,
   adminUpdateOrderStatus,
 } = require("../controllers/orderController");
 const { adminOnly } = require("../middleware/admin");
@@ -53,6 +54,7 @@ router.delete("/products/:id", adminOnly, adminDeleteProduct);
 
 // Orders
 router.get("/orders", adminOnly, adminGetOrders);
+router.get("/orders/:id", adminOnly, adminGetOrderById);
 router.patch("/orders/:id/status", adminOnly, adminUpdateOrderStatus);
 router.patch("/orders/:id", adminOnly, adminPatchOrder);
 

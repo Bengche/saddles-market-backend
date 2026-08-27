@@ -149,10 +149,10 @@ const placeOrder = async (req, res, next) => {
          bill_same_as_ship, bill_first_name, bill_last_name, bill_street_line1, bill_street_line2,
          bill_city, bill_state, bill_zip, bill_country,
          subtotal, shipping_cost, discount_amount, total,
-         coupon_code, shipping_method, customer_notes, trial_end_date, ip_address)
+         coupon_code, shipping_method, customer_notes, trial_end_date, ip_address, payment_method)
        VALUES
         ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
-         $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34)
+         $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35)
        RETURNING *`,
       [
         orderNumber,
@@ -193,6 +193,7 @@ const placeOrder = async (req, res, next) => {
         customerNotes || null,
         trialEndDate,
         req.ip || null,
+        paymentMethod || "bank_transfer",
       ],
     );
 
@@ -539,7 +540,7 @@ const adminGetOrders = async (req, res, next) => {
     params.push(offset);
 
     const result = await pool.query(
-      `SELECT o.id, o.created_at, o.total, o.total AS total_amount, o.status, o.tracking_number,
+      `SELECT o.id, o.order_number, o.created_at, o.total, o.total AS total_amount, o.status, o.tracking_number,
               o.shipping_method,
               COALESCE(u.first_name, o.ship_first_name) AS first_name,
               COALESCE(u.last_name, o.ship_last_name) AS last_name,
@@ -642,11 +643,40 @@ const adminUpdateOrderStatus = async (req, res, next) => {
   }
 };
 
+// ─── Admin: Get Single Order Detail ──────────────────────────────────────────
+const adminGetOrderById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const orderRes = await pool.query(
+      `SELECT o.*,
+              COALESCE(u.first_name, o.ship_first_name) AS customer_first_name,
+              COALESCE(u.last_name,  o.ship_last_name)  AS customer_last_name,
+              COALESCE(u.email,      o.guest_email)      AS customer_email,
+              COALESCE(u.phone, o.ship_phone, o.guest_phone) AS customer_phone
+       FROM orders o
+       LEFT JOIN users u ON u.id = o.user_id
+       WHERE o.id = $1`,
+      [id],
+    );
+    if (!orderRes.rows[0]) {
+      return res.status(404).json({ success: false, message: "Order not found." });
+    }
+    const itemsRes = await pool.query(
+      "SELECT * FROM order_items WHERE order_id = $1 ORDER BY created_at ASC",
+      [id],
+    );
+    res.json({ success: true, order: orderRes.rows[0], items: itemsRes.rows });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   placeOrder,
   getUserOrders,
   getOrder,
   requestRefund,
   adminGetOrders,
+  adminGetOrderById,
   adminUpdateOrderStatus,
 };
