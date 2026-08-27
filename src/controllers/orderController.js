@@ -27,6 +27,7 @@ const placeOrder = async (req, res, next) => {
       customerNotes,
       shippingMethod = "standard",
       couponCode,
+      paymentMethod = "bank_transfer",
     } = req.body;
 
     if (!items || items.length === 0) {
@@ -243,6 +244,7 @@ const placeOrder = async (req, res, next) => {
       firstName,
       order: { ...order, guest_email: customerEmail },
       customerEmail,
+      paymentMethod,
       items: orderItems.map((i) => ({
         product_name: i.productName,
         quantity: i.quantity,
@@ -261,6 +263,7 @@ const placeOrder = async (req, res, next) => {
         guest_email: customerEmail,
         guest_phone: shippingAddress.phone,
       },
+      paymentMethod,
       items: orderItems.map((i) => ({
         product_name: i.productName,
         quantity: i.quantity,

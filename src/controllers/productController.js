@@ -54,14 +54,17 @@ const getProducts = async (req, res, next) => {
     }
 
     const sortMap = {
+      random: "RANDOM()",
       created_at_desc: "p.created_at DESC",
+      newest: "p.created_at DESC",
       price_asc: "p.price ASC",
       price_desc: "p.price DESC",
       name_asc: "p.name ASC",
+      rating: "p.average_rating DESC",
       rating_desc: "p.average_rating DESC",
       popular: "p.sold_count DESC",
     };
-    const orderBy = sortMap[sort] || "p.created_at DESC";
+    const orderBy = sortMap[sort] || "RANDOM()";
 
     const whereClause =
       conditions.length > 0 ? "WHERE " + conditions.join(" AND ") : "";

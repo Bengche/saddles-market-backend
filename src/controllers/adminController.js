@@ -377,6 +377,12 @@ const createCoupon = async (req, res, next) => {
 
     res.status(201).json({ success: true, data: { coupon: result.rows[0] } });
   } catch (err) {
+    if (err.code === "23505") {
+      return res.status(409).json({
+        success: false,
+        message: `Coupon code "${(req.body.code || "").toUpperCase()}" already exists.`,
+      });
+    }
     next(err);
   }
 };

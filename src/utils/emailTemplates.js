@@ -191,7 +191,15 @@ const orderConfirmationTemplate = ({
   order,
   items,
   customerEmail,
+  paymentMethod,
 }) => {
+  const paymentMethodLabel = {
+    bank_transfer: "Bank Transfer",
+    zelle: "Zelle",
+    crypto: "Cryptocurrency",
+  }[paymentMethod] || (paymentMethod
+    ? paymentMethod.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+    : "Bank Transfer");
   const itemsHtml = items
     .map(
       (item) => `
@@ -224,6 +232,7 @@ const orderConfirmationTemplate = ({
       <p>
         <strong>Order Number:</strong> ${order.order_number}<br/>
         <strong>Status:</strong> <span class="status-badge status-pending">Pending Review</span><br/>
+        <strong>Payment Method:</strong> ${paymentMethodLabel}<br/>
         <strong>Date:</strong> ${new Date(order.created_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
       </p>
     </div>
@@ -234,8 +243,8 @@ const orderConfirmationTemplate = ({
       <div class="order-totals">
         <table width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr><td style="padding:10px 0 4px;font-size:14px;color:#3A3A3A;">Subtotal</td><td style="padding:10px 0 4px;text-align:right;font-size:14px;color:#3A3A3A;">$${parseFloat(order.subtotal).toFixed(2)}</td></tr>
-          <tr><td style="padding:4px 0;font-size:14px;color:#3A3A3A;">Shipping</td><td style="padding:4px 0;text-align:right;font-size:14px;color:#3A3A3A;">${parseFloat(order.shipping_cost) === 0 ? "Free" : "$" + parseFloat(order.shipping_cost).toFixed(2)}</td></tr>
-          ${order.discount_amount > 0 ? `<tr><td style="padding:4px 0;font-size:14px;color:#3A3A3A;">Discount</td><td style="padding:4px 0;text-align:right;font-size:14px;color:#2D7A4F;">-$${parseFloat(order.discount_amount).toFixed(2)}</td></tr>` : ""}
+          <tr><td style="padding:4px 0;font-size:14px;color:#3A3A3A;">${(order.shipping_method || "standard") === "express" ? "Express Shipping (2–3 days)" : "Standard Shipping (5–7 days)"}</td><td style="padding:4px 0;text-align:right;font-size:14px;">${parseFloat(order.shipping_cost) === 0 ? "<span style=\"color:#2D7A4F;font-weight:600;\">Free</span>" : "<span style=\"color:#3A3A3A;\">$" + parseFloat(order.shipping_cost).toFixed(2) + "</span>"}</td></tr>
+          ${parseFloat(order.discount_amount) > 0 ? `<tr><td style="padding:4px 0;font-size:14px;color:#3A3A3A;">Discount${order.coupon_code ? ` (${order.coupon_code})` : ""}</td><td style="padding:4px 0;text-align:right;font-size:14px;color:#2D7A4F;">-$${parseFloat(order.discount_amount).toFixed(2)}</td></tr>` : ""}
           <tr><td colspan="2" style="padding:10px 0 4px;border-top:1px solid #E8E0D0;"></td></tr>
           <tr><td style="padding:4px 0;font-size:17px;color:#1C3557;font-weight:bold;">Total</td><td style="padding:4px 0;text-align:right;font-size:17px;color:#1C3557;font-weight:bold;">$${parseFloat(order.total).toFixed(2)}</td></tr>
         </table>
@@ -303,7 +312,14 @@ const orderConfirmationTemplate = ({
 };
 
 // ─── Order Notification (Sales Team) ─────────────────────────────────────────
-const orderNotificationSalesTemplate = ({ order, items, customerEmail }) => {
+const orderNotificationSalesTemplate = ({ order, items, customerEmail, paymentMethod }) => {
+  const paymentMethodLabel = {
+    bank_transfer: "Bank Transfer",
+    zelle: "Zelle",
+    crypto: "Cryptocurrency",
+  }[paymentMethod] || (paymentMethod
+    ? paymentMethod.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+    : "Bank Transfer");
   const itemsHtml = items
     .map(
       (item) => `<tr>
@@ -374,6 +390,10 @@ const orderNotificationSalesTemplate = ({ order, items, customerEmail }) => {
           <td style="padding:5px 0;font-size:14px;color:#6A6A6A;">Payment Status</td>
           <td style="padding:5px 0;"><span class="status-badge status-pending">Pending</span></td>
         </tr>
+        <tr>
+          <td style="padding:5px 0;font-size:14px;color:#6A6A6A;">Payment Method</td>
+          <td style="padding:5px 0;font-size:14px;color:#1C3557;font-weight:bold;">${paymentMethodLabel}</td>
+        </tr>
       </table>
     </div>
 
@@ -394,8 +414,8 @@ const orderNotificationSalesTemplate = ({ order, items, customerEmail }) => {
           <td style="padding:8px 12px;text-align:right;font-size:13px;color:#3A3A3A;">$${parseFloat(order.subtotal).toFixed(2)}</td>
         </tr>
         <tr style="background:#FAFAF7;">
-          <td colspan="2" style="padding:4px 12px;font-size:13px;color:#6A6A6A;">Shipping (${order.shipping_method || "standard"})</td>
-          <td style="padding:4px 12px;text-align:right;font-size:13px;color:#3A3A3A;">${parseFloat(order.shipping_cost) === 0 ? "Free" : "$" + parseFloat(order.shipping_cost).toFixed(2)}</td>
+          <td colspan="2" style="padding:4px 12px;font-size:13px;color:#6A6A6A;">${(order.shipping_method || "standard") === "express" ? "Express Shipping (2–3 days)" : "Standard Shipping (5–7 days)"}</td>
+          <td style="padding:4px 12px;text-align:right;font-size:13px;">${parseFloat(order.shipping_cost) === 0 ? "<span style=\"color:#2D7A4F;font-weight:600;\">Free</span>" : "<span style=\"color:#3A3A3A;\">$" + parseFloat(order.shipping_cost).toFixed(2) + "</span>"}</td>
         </tr>
         ${parseFloat(order.discount_amount) > 0 ? `<tr style="background:#FAFAF7;"><td colspan="2" style="padding:4px 12px;font-size:13px;color:#6A6A6A;">Discount${order.coupon_code ? ` (${order.coupon_code})` : ""}</td><td style="padding:4px 12px;text-align:right;font-size:13px;color:#2D7A4F;">-$${parseFloat(order.discount_amount).toFixed(2)}</td></tr>` : ""}
         <tr>
@@ -421,11 +441,9 @@ const orderNotificationSalesTemplate = ({ order, items, customerEmail }) => {
     <div style="background:#F5EFE6;border:1px dashed #C4A862;padding:20px 24px;border-radius:4px;margin-bottom:24px;">
       <p style="font-size:13px;color:#6A6A6A;margin-bottom:12px;font-style:italic;">Copy, personalise, and reply directly to ${customerEmail}</p>
       <p style="font-size:14px;color:#1C3557;line-height:1.8;margin-bottom:10px;">Dear ${order.ship_first_name},</p>
-      <p style="font-size:14px;color:#3A3A3A;line-height:1.8;margin-bottom:10px;">Thank you for your order <strong>${order.order_number}</strong> from ${name}. We have received it and are pleased to confirm the total amount due is <strong>$${parseFloat(order.total).toFixed(2)}</strong>.</p>
-      <p style="font-size:14px;color:#3A3A3A;line-height:1.8;margin-bottom:10px;">To complete your purchase, please send payment using one of the following methods:</p>
-      <p style="font-size:14px;color:#3A3A3A;line-height:1.8;margin-bottom:4px;"><strong>[Add your payment details here — bank transfer, PayPal, Zelle, etc.]</strong></p>
-      <p style="font-size:14px;color:#3A3A3A;line-height:1.8;margin-bottom:10px;">Once we confirm receipt of payment, we will begin preparing your saddle for dispatch and provide you with tracking information. Your 30-day free trial begins from the date of delivery.</p>
-      <p style="font-size:14px;color:#3A3A3A;line-height:1.8;margin-bottom:10px;">If you have any questions, please do not hesitate to reply to this email or call us at ${contact.phone}.</p>
+      <p style="font-size:14px;color:#3A3A3A;line-height:1.8;margin-bottom:10px;">Thank you for choosing ${name}. Your order <strong>${order.order_number}</strong> has been received and the total is <strong>$${parseFloat(order.total).toFixed(2)}</strong>.</p>
+      <p style="font-size:14px;color:#3A3A3A;line-height:1.8;margin-bottom:10px;">Whenever you are ready to proceed, simply reply to this email and we will send you the ${paymentMethodLabel} details straight away. There is no rush — just let us know and we will take it from there.</p>
+      <p style="font-size:14px;color:#3A3A3A;line-height:1.8;margin-bottom:10px;">Once payment is confirmed, your saddle will be carefully prepared and dispatched. Your <strong>30-day free trial</strong> begins the day it is delivered to you — ride it, assess the fit, and if it is not the perfect match for you and your horse, we will make it right.</p>
       <p style="font-size:14px;color:#1C3557;line-height:1.8;">Warm regards,<br/><strong>${name} Sales Team</strong></p>
     </div>
 
