@@ -30,18 +30,20 @@ const getProducts = async (req, res, next) => {
     if (discipline) {
       // Broad category slugs expand to all related discipline enum values
       const DISCIPLINE_GROUPS = {
-        english:       ["english", "dressage", "jumping", "all_purpose"],
-        western:       ["western", "barrel_racing", "trail", "cutting", "endurance"],
-        dressage:      ["dressage"],
-        jumping:       ["jumping"],
-        trail:         ["trail", "endurance"],
+        english: ["english", "dressage", "jumping", "all_purpose"],
+        western: ["western", "barrel_racing", "trail", "cutting", "endurance"],
+        dressage: ["dressage"],
+        jumping: ["jumping"],
+        trail: ["trail", "endurance"],
         barrel_racing: ["barrel_racing"],
-        all_purpose:   ["all_purpose"],
-        cutting:       ["cutting"],
-        endurance:     ["endurance"],
-        youth:         ["other"],
+        all_purpose: ["all_purpose"],
+        cutting: ["cutting"],
+        endurance: ["endurance"],
+        youth: ["other"],
       };
-      const related = DISCIPLINE_GROUPS[discipline.toLowerCase()] || [discipline.toLowerCase()];
+      const related = DISCIPLINE_GROUPS[discipline.toLowerCase()] || [
+        discipline.toLowerCase(),
+      ];
       params.push(related);
       conditions.push(`p.discipline::text = ANY($${params.length}::text[])`);
     }
