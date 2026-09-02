@@ -659,7 +659,9 @@ const adminGetOrderById = async (req, res, next) => {
       [id],
     );
     if (!orderRes.rows[0]) {
-      return res.status(404).json({ success: false, message: "Order not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found." });
     }
     const itemsRes = await pool.query(
       "SELECT * FROM order_items WHERE order_id = $1 ORDER BY created_at ASC",

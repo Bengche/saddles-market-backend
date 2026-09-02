@@ -2,6 +2,12 @@ const { GoogleGenAI } = require("@google/genai");
 const pool = require("../config/database");
 const SITE_CONFIG = require("../config/siteConfig");
 
+const GEMINI_MODELS = [
+  "gemini-flash-latest",
+  "gemini-3.5-flash-lite",
+  "gemini-flash-lite-latest",
+];
+
 const SYSTEM_PROMPT = `You are Sterling, an elite equestrian advisor and luxury sales consultant for Saddles Market — a premium horse saddle retailer based in Lexington, Kentucky.
 
 ABOUT SADDLES MARKET:
@@ -192,16 +198,31 @@ const chat = async (req, res, next) => {
       parts: [{ text: message.trim() }],
     });
 
-    const response = await ai.models.generateContent({
-      model: "gemini-flash-latest",
-      contents,
-      config: {
-        systemInstruction: SYSTEM_PROMPT + productContext,
-        // maxOutputTokens: 300,
-        temperature: 0.7,
-        topP: 0.9,
-      },
-    });
+    let response;
+    let lastError;
+
+    for (const model of GEMINI_MODELS) {
+      try {
+        response = await ai.models.generateContent({
+          model,
+          contents,
+          config: {
+            systemInstruction: SYSTEM_PROMPT + productContext,
+            // maxOutputTokens: 300,
+            temperature: 0.7,
+            topP: 0.9,
+          },
+        });
+        break;
+      } catch (err) {
+        lastError = err;
+        console.warn(`Gemini model ${model} failed:`, err.message);
+      }
+    }
+
+    if (!response) {
+      throw lastError || new Error("All Gemini models failed.");
+    }
 
     return res.json({
       success: true,
