@@ -40,7 +40,7 @@ STRICT RULES:
 - When referencing products from the list, mention their name and price naturally in the text
 - When products are displayed as cards below your message, reference them with "tap the card to explore" or similar
 - When suggesting site pages, always format them as clickable markdown links like [Browse Products](/products) or [Contact Support](/contact), and if it helps, the frontend domain name is saddlesmarket.com
-- If no products match, ask a clarifying question or recommend they browse the full collection at /products`;
+- If no products match, ask a clarifying question or recommend they browse the full collection with a markdown link like [Browse Products](/products)`;
 
 function extractKeywords(message) {
   const stopWords = new Set([
@@ -178,7 +178,7 @@ const chat = async (req, res, next) => {
                 ` | Rating: ${p.average_rating || "N/A"}/5`,
             )
             .join("\n")
-        : "\n\n[AVAILABLE PRODUCTS] No exact matches found for this query. Respond helpfully — ask a clarifying question or invite them to browse /products.";
+        : "\n\n[AVAILABLE PRODUCTS] No exact matches found for this query. Respond helpfully — ask a clarifying question or invite them to browse with a link like [Browse Products](/products).";
 
     // Initialize new SDK client
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
