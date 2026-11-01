@@ -135,6 +135,7 @@ async function searchProducts(message) {
 const chat = async (req, res, next) => {
   try {
     const { message, history = [] } = req.body;
+    console.log(`[chat] request received (${(message || "").length} chars)`);
 
     if (!message || typeof message !== "string" || !message.trim()) {
       return res
