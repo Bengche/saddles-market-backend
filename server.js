@@ -49,16 +49,26 @@ const allowedOrigins = [
   "https://www.saddlesmarket.com",
   "https://saddlesmarket.com",
   "http://localhost:3000",
-  process.env.FRONTEND_URL,
-].filter(Boolean);
+  ...(process.env.FRONTEND_URL || "").split(","),
+]
+  .map((o) => o.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+
+// Local network origins (e.g. testing from a phone on http://192.168.x.x:3000)
+const isLanOrigin = (origin) =>
+  process.env.NODE_ENV !== "production" &&
+  /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(
+    origin,
+  );
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes(origin) || isLanOrigin(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        console.warn(`[CORS] Blocked origin: ${origin}`);
+        callback(null, false);
       }
     },
     credentials: true,
