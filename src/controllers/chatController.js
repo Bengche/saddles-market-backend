@@ -2,11 +2,65 @@ const { GoogleGenAI } = require("@google/genai");
 const pool = require("../config/database");
 const SITE_CONFIG = require("../config/siteConfig");
 
-const GEMINI_MODELS = [
-  "gemini-flash-latest",
-  "gemini-3.5-flash-lite",
-  "gemini-flash-lite-latest",
-];
+const GEMINI_MODELS = (
+  process.env.GEMINI_MODELS ||
+  [
+    "gemini-flash-latest",
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-flash-lite-latest",
+  ].join(",")
+)
+  .split(",")
+  .map((m) => m.trim())
+  .filter(Boolean);
+
+const MODEL_TIMEOUT_MS = 10000;
+
+// Optional non-Google fallback for any OpenAI-compatible API (Groq, OpenRouter, OpenAI...)
+// Set FALLBACK_AI_API_KEY, FALLBACK_AI_BASE_URL and FALLBACK_AI_MODEL to enable.
+async function generateWithFallbackProvider(systemPrompt, contents) {
+  const { FALLBACK_AI_API_KEY, FALLBACK_AI_BASE_URL, FALLBACK_AI_MODEL } =
+    process.env;
+  if (!FALLBACK_AI_API_KEY || !FALLBACK_AI_BASE_URL || !FALLBACK_AI_MODEL) {
+    return null;
+  }
+
+  const messages = [
+    { role: "system", content: systemPrompt },
+    ...contents.map((c) => ({
+      role: c.role === "model" ? "assistant" : "user",
+      content: c.parts.map((p) => p.text).join(""),
+    })),
+  ];
+
+  const res = await fetch(
+    `${FALLBACK_AI_BASE_URL.replace(/\/$/, "")}/chat/completions`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${FALLBACK_AI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: FALLBACK_AI_MODEL,
+        messages,
+        temperature: 0.7,
+      }),
+      signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
+    },
+  );
+  if (!res.ok) {
+    throw new Error(
+      `Fallback provider HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`,
+    );
+  }
+  const data = await res.json();
+  const text = data.choices?.[0]?.message?.content;
+  if (!text) throw new Error("Fallback provider returned no content.");
+  return text;
+}
 
 const SYSTEM_PROMPT = `You are Sterling, an elite equestrian advisor and luxury sales consultant for Saddles Market — a premium horse saddle retailer based in Lexington, Kentucky.
 
@@ -199,12 +253,12 @@ const chat = async (req, res, next) => {
       parts: [{ text: message.trim() }],
     });
 
-    let response;
+    let replyText;
     let lastError;
 
     for (const model of GEMINI_MODELS) {
       try {
-        response = await ai.models.generateContent({
+        const response = await ai.models.generateContent({
           model,
           contents,
           config: {
@@ -212,8 +266,11 @@ const chat = async (req, res, next) => {
             // maxOutputTokens: 300,
             temperature: 0.7,
             topP: 0.9,
+            httpOptions: { timeout: MODEL_TIMEOUT_MS },
           },
         });
+        if (!response.text) throw new Error("Empty response");
+        replyText = response.text;
         break;
       } catch (err) {
         lastError = err;
@@ -221,13 +278,25 @@ const chat = async (req, res, next) => {
       }
     }
 
-    if (!response) {
-      throw lastError || new Error("All Gemini models failed.");
+    if (!replyText) {
+      try {
+        replyText = await generateWithFallbackProvider(
+          SYSTEM_PROMPT + productContext,
+          contents,
+        );
+      } catch (err) {
+        lastError = err;
+        console.warn("Fallback AI provider failed:", err.message);
+      }
+    }
+
+    if (!replyText) {
+      throw lastError || new Error("All AI providers failed.");
     }
 
     return res.json({
       success: true,
-      reply: response.text,
+      reply: replyText,
       products: products.map((p) => ({
         id: p.id,
         name: p.name,
