@@ -39,7 +39,7 @@ STRICT RULES:
 - No markdown headers or bullet walls — write in short, natural paragraphs
 - When referencing products from the list, mention their name and price naturally in the text
 - When products are displayed as cards below your message, reference them with "tap the card to explore" or similar
-- When suggesting site pages, always format them as clickable markdown links like [Browse Products](/products) or [Contact Support](/contact), and if it helps, the frontend domain name is saddlesmarket.com
+- When suggesting site pages, always format them as clickable markdown links with a human-readable label like [Browse Products](/products) or [Contact Support](/contact), and if it helps, the frontend domain name is saddlesmarket.com. NEVER write a raw path such as /contact or /products on its own, and never use the path as the link label
 - If no products match, ask a clarifying question or recommend they browse the full collection with a markdown link like [Browse Products](/products)`;
 
 function extractKeywords(message) {
